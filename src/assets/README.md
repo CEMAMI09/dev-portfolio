@@ -7,25 +7,16 @@ directory. A content path of `/assets/struct/dashboard.png` maps to
 Until a file exists, the page renders a designed placeholder in its place.
 Drop the file in and rebuild; nothing else needs to change.
 
-Expected files (see each project's `hero` and `gallery` fields):
+Expected files (see each project's `hero` field):
 
 ```
 src/assets/
   struct/
-    dashboard.png
-    schema-builder.png
-    simulator.png
-    webhooks.png
+    dashboard.svg
   variable-reach-arm/
-    arm_motion.gif              <- from the repo: cad/animations/arm_motion.gif
-    arm_motion_catch_fast.gif   <- from the repo: cad/animations/arm_motion_catch_fast.gif
-    assembly.png
-    simulation.png
+    arm_image.svg
   blueprintcad/
-    viewer.png
-    dashboard.png
-    storefront.png
-    explore.png
+    viewer.svg
   work/
     (placeholders only; internal tools are not published)
 ```

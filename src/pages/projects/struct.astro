@@ -8,7 +8,6 @@ import ArchitectureDiagram from '../../components/project/ArchitectureDiagram.as
 import FeatureList from '../../components/project/FeatureList.astro';
 import Notes from '../../components/project/Notes.astro';
 import SpecTable from '../../components/project/SpecTable.astro';
-import ProjectGallery from '../../components/project/ProjectGallery.astro';
 import ProjectNav from '../../components/project/ProjectNav.astro';
 import ImageFrame from '../../components/ui/ImageFrame.astro';
 import TechTags from '../../components/ui/TechTags.astro';
@@ -39,7 +38,6 @@ const sections = [
   { id: 'bandwidth', index: '05', title: 'Modeled bandwidth' },
   { id: 'stack', index: '06', title: 'Technologies' },
   { id: 'status', index: '07', title: 'Status' },
-  { id: 'gallery', index: '08', title: 'Gallery' },
 ];
 const featureCount = data.features.reduce((n, g) => n + g.items.length, 0);
 ---
@@ -143,10 +141,6 @@ const featureCount = data.features.reduce((n, g) => n + g.items.length, 0);
         )
       }
     </div>
-  </CaseStudySection>
-
-  <CaseStudySection id="gallery" index="08" title="Gallery" meta={`${data.gallery.length} images`}>
-    <ProjectGallery images={data.gallery} />
   </CaseStudySection>
 
   <ProjectNav currentId={project.id} sourceUrl={data.links.source.url} />

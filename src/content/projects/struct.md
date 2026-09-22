@@ -112,19 +112,6 @@ hero:
   caption: Telemetry dashboard
   treatment: none
   aspect: 3420 / 1914
-gallery:
-  - src: /assets/struct/schema-builder.png
-    alt: Struct schema builder alongside the C++ header it generated
-    caption: Schema builder and generated header
-    aspect: 16 / 10
-  - src: /assets/struct/simulator.png
-    alt: Struct device simulator sending frames to the gateway
-    caption: Device simulator
-    aspect: 16 / 10
-  - src: /assets/struct/webhooks.png
-    alt: Webhook destination configuration with signing key
-    caption: Webhook destinations
-    aspect: 16 / 10
 currentStatus: >-
   Struct is in active development and the source is public. A hosted
   deployment at struct.dev is planned; at the time of publishing the domain

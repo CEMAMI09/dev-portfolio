@@ -98,7 +98,6 @@ const projects = defineCollection({
     tables: z.array(table).default([]),
     diagrams: z.array(diagram).default([]),
     hero: image,
-    gallery: z.array(image).default([]),
     currentStatus: z.string(),
     seo: z.object({
       title: z.string(),

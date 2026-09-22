@@ -8,7 +8,6 @@ import ArchitectureDiagram from '../../components/project/ArchitectureDiagram.as
 import FeatureList from '../../components/project/FeatureList.astro';
 import Notes from '../../components/project/Notes.astro';
 import SpecTable from '../../components/project/SpecTable.astro';
-import ProjectGallery from '../../components/project/ProjectGallery.astro';
 import ProjectNav from '../../components/project/ProjectNav.astro';
 import ImageFrame from '../../components/ui/ImageFrame.astro';
 import TechTags from '../../components/ui/TechTags.astro';
@@ -36,7 +35,6 @@ const sections = [
   { id: 'engineering', index: '04', title: 'Engineering notes' },
   { id: 'stack', index: '05', title: 'Technologies' },
   { id: 'status', index: '06', title: 'Status' },
-  { id: 'gallery', index: '07', title: 'Gallery' },
 ];
 ---
 
@@ -131,10 +129,6 @@ const sections = [
         class="status__table"
       />
     </div>
-  </CaseStudySection>
-
-  <CaseStudySection id="gallery" index="07" title="Gallery" meta={`${data.gallery.length} images`}>
-    <ProjectGallery images={data.gallery} />
   </CaseStudySection>
 
   <ProjectNav currentId={project.id} sourceUrl={data.links.source.url} />

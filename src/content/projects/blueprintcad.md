@@ -6,7 +6,7 @@ category: CAD / Web Platform / 3D
 start: 2023-10
 end: null
 status:
-  label: Active — long-term
+  label: Partially active
   kind: active
   detail: Core systems functional; some features still being completed
 summary: >-
@@ -112,21 +112,8 @@ hero:
   caption: Project dashboard
   treatment: none
   aspect: 1968 / 1035
-gallery:
-  - src: /assets/blueprintcad/dashboard.png
-    alt: Project dashboard with folders and thumbnails
-    caption: Project dashboard
-    aspect: 16 / 10
-  - src: /assets/blueprintcad/storefront.png
-    alt: A creator storefront with marketplace listings
-    caption: Creator storefront
-    aspect: 16 / 10
-  - src: /assets/blueprintcad/explore.png
-    alt: Explore page listing public projects
-    caption: Explore
-    aspect: 16 / 10
 currentStatus: >-
-  BlueprintCAD is an active long-term project. Core viewing, upload,
+  BlueprintCAD is partially active. Core viewing, upload,
   authentication, marketplace, storefront, subscription, dashboard, and
   analytics systems are functional. Some collaboration, versioning, messaging,
   and order-management features are still being completed.

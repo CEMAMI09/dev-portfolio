@@ -2,7 +2,6 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import StatusLabel from '../components/ui/StatusLabel.astro';
 import TechTags from '../components/ui/TechTags.astro';
-import ImageFrame from '../components/ui/ImageFrame.astro';
 import { formatRange } from '../utils/format';
 
 const job = {
@@ -19,7 +18,7 @@ const job = {
     'Built a CAPA workflow for issue intake, risk scoring, corrective actions, and follow-up',
     'Built customer intake and certification systems where customers submit forms and staff review and manage submissions',
     "Forked Headwind MDM's Android agent and built a custom kiosk launcher and restricted Settings app for Samsung field devices",
-    'Implemented Android Device Owner policies, Lock Task Mode, technician access, and automatic kiosk recovery. V1 source implementation is complete; device testing and deployment are pending',
+    'Implemented Android Device Owner policies, Lock Task Mode, technician access, and automatic kiosk recovery.',
   ],
   tech: [
     'Vue',
@@ -38,22 +37,6 @@ const job = {
     'Gradle',
     'Docker',
     'PostgreSQL',
-  ],
-  images: [
-    {
-      src: '/assets/work/capa.png',
-      alt: 'CAPA workflow system',
-      caption: 'CAPA workflow — internal tool, screenshot not published',
-      treatment: 'gray' as const,
-      aspect: '2 / 1',
-    },
-    {
-      src: '/assets/work/intake.png',
-      alt: 'Certification intake and review system',
-      caption: 'Certification intake — internal tool, screenshot not published',
-      treatment: 'gray' as const,
-      aspect: '2 / 1',
-    },
   ],
 };
 
@@ -100,14 +83,6 @@ const job = {
           <TechTags items={job.tech} label="Technologies used at Evoq Technologies" />
         </div>
       </div>
-
-      <div class="job__images">
-        {job.images.map((image) => <ImageFrame image={image} toggle={false} placeholderLabel="Work image pending" />)}
-      </div>
-      <p class="job__note mono">
-        Internal tools. Screenshots are shown only with the company's approval; none are published
-        yet. No customer data, credentials, or proprietary logic appear on this site.
-      </p>
     </article>
   </section>
 </BaseLayout>
@@ -169,20 +144,6 @@ const job = {
 
   .job__label {
     margin-bottom: var(--s-3);
-  }
-
-  .job__images {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-    gap: var(--s-4);
-  }
-
-  .job__note {
-    color: var(--text-3);
-    text-transform: none;
-    letter-spacing: 0;
-    max-width: none;
-    line-height: 1.5;
   }
 
   @media (max-width: 720px) {

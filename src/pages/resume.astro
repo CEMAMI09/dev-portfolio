@@ -8,9 +8,8 @@ import { publicFileInfo, formatBytes } from '../utils/assets';
 import { isoDate } from '../utils/format';
 
 /**
- * Placeholder until the resume exists. Drop the file at
- * public/cody-emami-resume.pdf and rebuild; the page then exposes open and
- * download links with the real file size and date.
+ * Resume file lives at public/cody-emami-resume.pdf. The page exposes open
+ * and download links with the real file size and date when that file exists.
  */
 const resume = publicFileInfo(site.resumePath);
 const meta =

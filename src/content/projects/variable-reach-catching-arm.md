@@ -122,22 +122,6 @@ hero:
   caption: FreeCAD assembly
   treatment: none
   aspect: 1140 / 1062
-gallery:
-  - src: /assets/variable-reach-arm/arm_motion_catch_fast.gif
-    alt: Animated CAD render of a fast catch sequence
-    caption: cad/animations/arm_motion_catch_fast.gif
-    treatment: gray
-    aspect: 16 / 9
-  - src: /assets/variable-reach-arm/assembly.png
-    alt: FreeCAD assembly of the arm with the boom extended
-    caption: cad/freecad/VariableReachArm.FCStd
-    treatment: gray
-    aspect: 16 / 10
-  - src: /assets/variable-reach-arm/simulation.png
-    alt: Plot from the host simulation showing a predicted trajectory and intercept point
-    caption: simulation.run_demo
-    treatment: gray
-    aspect: 16 / 10
 currentStatus: >-
   Current stage: design, simulation, CAD, firmware skeleton, host software
   skeleton, BOM, and bring-up documentation. Physical catch-rate results have
