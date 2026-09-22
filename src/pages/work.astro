@@ -1,0 +1,198 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StatusLabel from '../components/ui/StatusLabel.astro';
+import TechTags from '../components/ui/TechTags.astro';
+import ImageFrame from '../components/ui/ImageFrame.astro';
+import { formatRange } from '../utils/format';
+
+const job = {
+  company: 'Evoq Technologies',
+  title: 'Software Developer',
+  start: '2025-11',
+  end: null,
+  location: 'Henderson / Las Vegas, Nevada',
+  summary:
+    'I build and maintain web applications, internal software, and Android field-device systems at Evoq Technologies, a medical-technology company.',
+  work: [
+    "Helped build and maintain the company's main corporate website and backend systems",
+    'Built internal web applications, dashboards, and database-backed tools used by staff and customers',
+    'Built a CAPA workflow for issue intake, risk scoring, corrective actions, and follow-up',
+    'Built customer intake and certification systems where customers submit forms and staff review and manage submissions',
+    "Forked Headwind MDM's Android agent and built a custom kiosk launcher and restricted Settings app for Samsung field devices",
+    'Implemented Android Device Owner policies, Lock Task Mode, technician access, and automatic kiosk recovery. V1 source implementation is complete; device testing and deployment are pending',
+  ],
+  tech: [
+    'Vue',
+    'JavaScript',
+    'HTML',
+    'CSS',
+    'SQL',
+    'AWS',
+    'Lambda',
+    'Astra',
+    'WordPress',
+    'Java',
+    'Android SDK',
+    'AIDL',
+    'Headwind MDM',
+    'Gradle',
+    'Docker',
+    'PostgreSQL',
+  ],
+  images: [
+    {
+      src: '/assets/work/capa.png',
+      alt: 'CAPA workflow system',
+      caption: 'CAPA workflow — internal tool, screenshot not published',
+      treatment: 'gray' as const,
+      aspect: '2 / 1',
+    },
+    {
+      src: '/assets/work/intake.png',
+      alt: 'Certification intake and review system',
+      caption: 'Certification intake — internal tool, screenshot not published',
+      treatment: 'gray' as const,
+      aspect: '2 / 1',
+    },
+  ],
+};
+
+---
+
+<BaseLayout
+  title="Work"
+  description="Professional experience: Software Developer at Evoq Technologies, Las Vegas, since November 2025."
+  crumbs={[{ label: 'work.app' }]}
+  pathMeta="1 entry"
+>
+  <header class="wh container">
+    <h1 class="title">Work</h1>
+  </header>
+
+  <section class="container job-wrap" aria-labelledby="job-title">
+    <article class="job">
+      <header class="job__head">
+        <div>
+          <p class="mono job__company">{job.company}</p>
+          <h2 class="job__title" id="job-title">{job.title}</h2>
+        </div>
+        <dl class="kv job__meta">
+          <dt>Dates</dt>
+          <dd>{formatRange(job.start, job.end)}</dd>
+          <dt>Location</dt>
+          <dd>{job.location}</dd>
+          <dt>Status</dt>
+          <dd><StatusLabel kind="active" label="Current" /></dd>
+        </dl>
+      </header>
+
+      <p class="job__summary">{job.summary}</p>
+
+      <div class="job__grid">
+        <div>
+          <p class="label job__label">Work</p>
+          <ul class="list">
+            {job.work.map((item) => <li>{item}</li>)}
+          </ul>
+        </div>
+        <div>
+          <p class="label job__label">Technologies</p>
+          <TechTags items={job.tech} label="Technologies used at Evoq Technologies" />
+        </div>
+      </div>
+
+      <div class="job__images">
+        {job.images.map((image) => <ImageFrame image={image} toggle={false} placeholderLabel="Work image pending" />)}
+      </div>
+      <p class="job__note mono">
+        Internal tools. Screenshots are shown only with the company's approval; none are published
+        yet. No customer data, credentials, or proprietary logic appear on this site.
+      </p>
+    </article>
+  </section>
+</BaseLayout>
+
+<style>
+  .wh {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  .job-wrap {
+    padding-bottom: var(--s-7);
+  }
+
+  .job {
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+    padding: var(--s-5);
+    display: grid;
+    gap: var(--s-6);
+  }
+
+  .job__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--s-5) var(--s-8);
+    align-items: start;
+    padding-bottom: var(--s-5);
+    border-bottom: var(--line) solid var(--border-2);
+  }
+
+  .job__company {
+    color: var(--text-2);
+    margin-bottom: var(--s-2);
+  }
+
+  .job__title {
+    font-size: var(--fs-2xl);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .job__meta {
+    min-width: 16rem;
+  }
+
+  .job__summary {
+    font-size: var(--fs-lg);
+    line-height: 1.5;
+    color: var(--text);
+    max-width: 36em;
+  }
+
+  .job__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: var(--s-6) var(--s-8);
+  }
+
+  .job__label {
+    margin-bottom: var(--s-3);
+  }
+
+  .job__images {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--s-4);
+  }
+
+  .job__note {
+    color: var(--text-3);
+    text-transform: none;
+    letter-spacing: 0;
+    max-width: none;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 720px) {
+    .job__head,
+    .job__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .job__meta {
+      min-width: 0;
+    }
+  }
+</style>

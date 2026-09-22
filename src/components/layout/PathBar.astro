@@ -1,0 +1,104 @@
+---
+import { site, type Crumb } from '../../utils/site';
+
+/**
+ * Path bar beneath the header:  ~/cody/projects/struct        STATUS: ACTIVE
+ * Segments are breadcrumb links. The root alone renders as "~/cody/".
+ */
+interface Props {
+  crumbs: Crumb[];
+  meta?: string;
+}
+
+const { crumbs, meta } = Astro.props;
+---
+
+<div class="path container">
+  <nav class="path__nav" aria-label="Breadcrumb">
+    <ol class="path__list" role="list">
+      <li class="path__item">
+        <a class="path__link" href="/" aria-current={crumbs.length === 0 ? 'page' : undefined}>
+          {site.pathRoot}{crumbs.length === 0 && '/'}
+        </a>
+      </li>
+      {
+        crumbs.map((crumb, index) => {
+          const last = index === crumbs.length - 1;
+          return (
+            <li class="path__item">
+              <span class="path__sep" aria-hidden="true">/</span>
+              {crumb.href && !last ? (
+                <a class="path__link" href={crumb.href}>
+                  {crumb.label}
+                </a>
+              ) : (
+                <span class="path__current" aria-current={last ? 'page' : undefined}>
+                  {crumb.label}
+                </span>
+              )}
+            </li>
+          );
+        })
+      }
+    </ol>
+  </nav>
+  {meta && <p class="path__meta">{meta}</p>}
+</div>
+
+<style>
+  .path {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    min-height: 2rem;
+    border-bottom: var(--line) solid var(--border-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.02em;
+    color: var(--text-3);
+  }
+
+  .path__nav {
+    min-width: 0;
+  }
+
+  .path__list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .path__item {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .path__link {
+    color: var(--text-3);
+    text-decoration: none;
+    padding-block: var(--s-2);
+    transition: color var(--dur-fast) var(--ease);
+  }
+
+  .path__link:hover {
+    color: var(--text);
+  }
+
+  .path__current {
+    color: var(--text-2);
+  }
+
+  .path__meta {
+    flex: none;
+    text-transform: uppercase;
+    letter-spacing: var(--track-mono);
+    max-width: none;
+  }
+
+  @media (max-width: 480px) {
+    .path__meta {
+      display: none;
+    }
+  }
+</style>

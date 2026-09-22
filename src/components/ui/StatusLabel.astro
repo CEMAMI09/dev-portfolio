@@ -1,0 +1,60 @@
+---
+/**
+ * Status marker:  ■ ACTIVE   □ MILESTONE 0   · PLANNED
+ * Meaning is carried by the text; the marker only reinforces it.
+ */
+interface Props {
+  kind: 'active' | 'wip' | 'planned' | 'paused' | 'note';
+  label: string;
+  class?: string;
+}
+
+const { kind, label, class: className } = Astro.props;
+---
+
+<span class:list={['status', `status--${kind}`, className]}>
+  <span class="status__mark" aria-hidden="true"></span>
+  {label}
+</span>
+
+<style>
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    line-height: 1.2;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .status__mark {
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border: var(--line) solid var(--text);
+  }
+
+  .status--active .status__mark {
+    background: var(--text);
+  }
+
+  .status--wip .status__mark {
+    background: linear-gradient(135deg, var(--text) 50%, transparent 50%);
+  }
+
+  .status--planned,
+  .status--paused,
+  .status--note {
+    color: var(--text-2);
+  }
+
+  .status--planned .status__mark,
+  .status--paused .status__mark,
+  .status--note .status__mark {
+    border-color: var(--text-3);
+  }
+</style>

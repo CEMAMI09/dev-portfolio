@@ -1,0 +1,205 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/ui/SectionHeader.astro';
+import StatusLabel from '../../components/ui/StatusLabel.astro';
+import TechTags from '../../components/ui/TechTags.astro';
+import ProjectRecord from '../../components/project/ProjectRecord.astro';
+import FlowChain from '../../components/project/FlowChain.astro';
+import { formatRange, pad2 } from '../../utils/format';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+
+function byId(id: string) {
+  const entry = projects.find((p) => p.id === id);
+  if (!entry) throw new Error(`Missing project entry: ${id}`);
+  return entry;
+}
+
+const struct = byId('struct');
+const arm = byId('variable-reach-catching-arm');
+const blueprintcad = byId('blueprintcad');
+const previewFormats = blueprintcad.data.features.find((g) => g.group?.startsWith('Formats'))?.items ?? [];
+---
+
+<BaseLayout
+  title="Projects"
+  description="Engineering projects by Cody Emami: Struct (IoT gateway), a variable-reach catching arm (robotics), and BlueprintCAD (CAD platform)."
+  crumbs={[{ label: 'projects/' }]}
+  pathMeta={`${projects.length} entries`}
+>
+  <header class="pi container">
+    <h1 class="title">Projects</h1>
+    <p class="pi__lede">
+      Three personal projects with public source. Each page covers what the system does, why it
+      exists, what has been built, and what is still unfinished.
+    </p>
+  </header>
+
+  <section class="container pi__listing" aria-labelledby="listing">
+    <SectionHeader id="listing" title="Listing" meta={`${projects.length} entries`} />
+    <table class="ls">
+      <thead>
+        <tr>
+          <th scope="col">No.</th>
+          <th scope="col">Name</th>
+          <th scope="col" class="ls__wide">Category</th>
+          <th scope="col" class="ls__wide">Dates</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          projects.map((p) => (
+            <tr>
+              <td class="ls__num">{pad2(p.data.order)}</td>
+              <td class="ls__name">
+                <a href={`#rec-${p.id}`}>{p.data.title}</a>
+              </td>
+              <td class="ls__wide">{p.data.category}</td>
+              <td class="ls__wide">{formatRange(p.data.start, p.data.end)}</td>
+              <td>
+                <StatusLabel kind={p.data.status.kind} label={p.data.status.label} />
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section container" aria-labelledby="records">
+    <SectionHeader id="records" title="Records" meta="Open a project for the full case study" />
+
+    <ProjectRecord project={struct} variant="a" eager>
+      <div slot="detail">
+        <p class="label detail-label">Data flow</p>
+        <FlowChain
+          steps={['Device', 'TCP / UDP', 'Auth', 'Schema', 'Store', 'Webhook']}
+          label="Struct data flow"
+        />
+      </div>
+    </ProjectRecord>
+
+    <ProjectRecord project={arm} variant="b">
+      <div slot="detail">
+        <p class="label detail-label">Design values</p>
+        <dl class="kv kv--tight">
+          <dt>State</dt>
+          <dd><code class="eq">q = [θ<sub>y</sub>, θ<sub>p</sub>, L]</code></dd>
+          <dt>Reach</dt>
+          <dd>~0.7–1.2 m</dd>
+          <dt>Stroke</dt>
+          <dd>~500 mm</dd>
+          <dt>Budget</dt>
+          <dd>&lt; $500 target · ~$449 BOM</dd>
+        </dl>
+      </div>
+    </ProjectRecord>
+
+    <ProjectRecord project={blueprintcad} variant="a">
+      <div slot="detail">
+        <p class="label detail-label">Previewed in the browser</p>
+        <TechTags items={previewFormats} label="Formats previewed in the browser" />
+      </div>
+    </ProjectRecord>
+  </section>
+</BaseLayout>
+
+<style>
+  .pi {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  .pi__lede {
+    margin-top: var(--s-5);
+    font-size: var(--fs-md);
+    max-width: 40em;
+  }
+
+  .pi__listing {
+    padding-bottom: var(--s-7);
+  }
+
+  /* Listing table */
+  .ls {
+    width: 100%;
+    border-collapse: collapse;
+    border: var(--line) solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+  }
+
+  .ls th,
+  .ls td {
+    text-align: left;
+    vertical-align: middle;
+    padding: var(--s-3) var(--s-4);
+    border-bottom: var(--line) solid var(--border-2);
+  }
+
+  .ls thead th {
+    font-size: var(--fs-2xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text-3);
+    background: var(--panel);
+  }
+
+  .ls tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .ls tbody tr:hover {
+    background: var(--panel);
+  }
+
+  .ls__num {
+    color: var(--text-3);
+    width: 4rem;
+  }
+
+  .ls__name a {
+    color: var(--text);
+    font-weight: 500;
+    text-decoration: none;
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+  }
+
+  .ls__name a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .ls td {
+    color: var(--text-2);
+  }
+
+  @media (max-width: 720px) {
+    .ls__wide {
+      display: none;
+    }
+  }
+
+  /* Record detail blocks */
+  .detail-label {
+    margin-bottom: var(--s-3);
+  }
+
+  .kv--tight {
+    row-gap: var(--s-1);
+  }
+
+  .eq {
+    font-size: var(--fs-xs);
+    color: var(--text);
+  }
+
+  .eq sub {
+    font-size: 0.75em;
+    line-height: 0;
+  }
+</style>

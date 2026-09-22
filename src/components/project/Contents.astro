@@ -1,0 +1,71 @@
+---
+/**
+ * In-page contents list for a case study, linking to section anchors.
+ */
+interface Item {
+  id: string;
+  index: string;
+  title: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="toc container" aria-label="Contents">
+  <span class="toc__label label">Contents</span>
+  <ol class="toc__list" role="list">
+    {
+      items.map((item) => (
+        <li>
+          <a class="toc__link" href={`#${item.id}`}>
+            <span class="toc__index">{item.index}</span>
+            {item.title}
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-3) var(--s-5);
+    padding-block: var(--s-4);
+    border-top: var(--line) solid var(--border-2);
+    border-bottom: var(--line) solid var(--border-2);
+  }
+
+  .toc__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2) var(--s-5);
+  }
+
+  .toc__link {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text-2);
+    display: inline-flex;
+    gap: var(--s-2);
+    padding-block: var(--s-1);
+    transition: color var(--dur-fast) var(--ease);
+  }
+
+  .toc__link:hover {
+    color: var(--text);
+  }
+
+  .toc__index {
+    color: var(--text-3);
+  }
+</style>

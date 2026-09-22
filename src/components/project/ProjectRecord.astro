@@ -1,0 +1,232 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ImageFrame from '../ui/ImageFrame.astro';
+import TechTags from '../ui/TechTags.astro';
+import ExternalLink from '../ui/ExternalLink.astro';
+import { formatRange, pad2 } from '../../utils/format';
+
+/**
+ * A project entry on the homepage, laid out as a record rather than a card.
+ *
+ *  a — image left, text right
+ *  b — text left, image right
+ *  c — wide image on top, text in two columns below
+ *
+ * The `detail` slot holds one project-specific technical block.
+ */
+interface Props {
+  project: CollectionEntry<'projects'>;
+  variant: 'a' | 'b' | 'c';
+  /** Load the hero image eagerly (first record above the fold). */
+  eager?: boolean;
+}
+
+const { project, variant, eager = false } = Astro.props;
+const { data } = project;
+const href = `/projects/${project.id}`;
+const headingId = `rec-${project.id}`;
+const number = pad2(data.order);
+const hero = data.hero;
+---
+
+<article class:list={['rec', `rec--${variant}`]} aria-labelledby={headingId}>
+  <header class="rec__head">
+    <span class="rec__num" aria-hidden="true">{number}</span>
+    <h3 class="rec__title" id={headingId}>
+      <span class="visually-hidden">Project {number}: </span>
+      <a class="rec__title-link" href={href}>{data.title}</a>
+    </h3>
+    <p class="rec__meta mono">
+      <span>{data.kicker}</span>
+      <span class="rec__meta-sep" aria-hidden="true">·</span>
+      <span>{formatRange(data.start, data.end)}</span>
+    </p>
+  </header>
+
+  <div class="rec__body">
+    <div class="rec__media">
+      <ImageFrame
+        image={hero}
+        loading={eager ? 'eager' : 'lazy'}
+        toggle={false}
+        sizes="(max-width: 900px) 100vw, 58vw"
+      />
+    </div>
+
+    <div class="rec__text">
+      <p class="rec__summary">{data.summary}</p>
+      <div class="rec__detail">
+        <slot name="detail" />
+      </div>
+    </div>
+
+    <div class="rec__foot">
+      <TechTags items={data.tech} label={`${data.title} technologies`} />
+      <div class="rec__actions">
+        <a class="btn btn--primary" href={href}>Open project</a>
+        <ExternalLink href={data.links.source.url} class="btn">Source</ExternalLink>
+      </div>
+    </div>
+  </div>
+</article>
+
+<style>
+  .rec {
+    padding-block: var(--s-6) var(--s-8);
+    border-top: var(--line) solid var(--border);
+  }
+
+  .rec__head {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    gap: var(--s-2) var(--s-5);
+    margin-bottom: var(--s-5);
+  }
+
+  .rec__num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xl);
+    color: var(--text-3);
+    line-height: 1;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  .rec__title {
+    font-size: clamp(1.5rem, 1rem + 1.8vw, 2.25rem);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    line-height: 1.05;
+    scroll-margin-top: 4.5rem;
+  }
+
+  .rec__title-link {
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  .rec__title-link:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.12em;
+    text-decoration-color: var(--white);
+  }
+
+  .rec__meta {
+    color: var(--text-2);
+    display: inline-flex;
+    gap: var(--s-2);
+    white-space: nowrap;
+  }
+
+  .rec__meta-sep {
+    color: var(--text-3);
+  }
+
+  .rec__body {
+    display: grid;
+    gap: var(--s-5) var(--s-6);
+    align-items: start;
+  }
+
+  .rec__media {
+    min-width: 0;
+  }
+
+  .rec__media :global(.img-frame) {
+    width: 100%;
+  }
+
+  .rec__summary {
+    font-size: var(--fs-md);
+    color: var(--text-body);
+  }
+
+  .rec__detail:empty {
+    display: none;
+  }
+
+  .rec__detail {
+    margin-top: var(--s-5);
+  }
+
+  .rec__foot {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-4);
+  }
+
+  .rec__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+  }
+
+  /* Variant A: image left, text right, footer under text. */
+  @media (min-width: 900px) {
+    .rec--a .rec__body,
+    .rec--b .rec__body {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      grid-template-areas:
+        'media text'
+        'media foot';
+      align-items: start;
+    }
+
+    .rec--a .rec__media,
+    .rec--b .rec__media {
+      grid-area: media;
+    }
+
+    .rec--a .rec__text,
+    .rec--b .rec__text {
+      grid-area: text;
+    }
+
+    .rec--a .rec__foot,
+    .rec--b .rec__foot {
+      grid-area: foot;
+      align-self: end;
+    }
+
+    /* Variant B mirrors A. */
+    .rec--b .rec__body {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-areas:
+        'text media'
+        'foot media';
+    }
+
+    /* Variant C: wide image, then text and footer side by side. */
+    .rec--c .rec__body {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      grid-template-areas:
+        'media media'
+        'text foot';
+    }
+
+    .rec--c .rec__media {
+      grid-area: media;
+    }
+
+    .rec--c .rec__text {
+      grid-area: text;
+    }
+
+    .rec--c .rec__foot {
+      grid-area: foot;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .rec__head {
+      grid-template-columns: auto 1fr;
+    }
+
+    .rec__meta {
+      grid-column: 1 / -1;
+      white-space: normal;
+      flex-wrap: wrap;
+    }
+  }
+</style>

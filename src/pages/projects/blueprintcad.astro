@@ -1,0 +1,199 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectHeader from '../../components/project/ProjectHeader.astro';
+import Contents from '../../components/project/Contents.astro';
+import CaseStudySection from '../../components/project/CaseStudySection.astro';
+import ArchitectureDiagram from '../../components/project/ArchitectureDiagram.astro';
+import FeatureList from '../../components/project/FeatureList.astro';
+import Notes from '../../components/project/Notes.astro';
+import SpecTable from '../../components/project/SpecTable.astro';
+import ProjectGallery from '../../components/project/ProjectGallery.astro';
+import ProjectNav from '../../components/project/ProjectNav.astro';
+import ImageFrame from '../../components/ui/ImageFrame.astro';
+import TechTags from '../../components/ui/TechTags.astro';
+import StatusLabel from '../../components/ui/StatusLabel.astro';
+import ExternalLink from '../../components/ui/ExternalLink.astro';
+import { formatMonth } from '../../utils/format';
+
+const project = await getEntry('projects', 'blueprintcad');
+if (!project) throw new Error('Missing content entry: projects/blueprintcad');
+const { data } = project;
+const { Content, headings } = await render(project);
+
+const subsystems = data.tables.find((t) => t.id === 'subsystems');
+if (!subsystems) throw new Error('blueprintcad: missing table "subsystems"');
+const architecture = data.diagrams.find((d) => d.id === 'architecture');
+if (!architecture) throw new Error('blueprintcad: missing diagram "architecture"');
+
+const featureCount = data.features.reduce((n, g) => n + g.items.length, 0);
+const functional = subsystems.rows.filter((r) => r[1] === 'Functional').length;
+
+const sections = [
+  { id: 'why', index: '01', title: 'Why it exists' },
+  { id: 'architecture', index: '02', title: 'Architecture' },
+  { id: 'features', index: '03', title: 'Feature map' },
+  { id: 'engineering', index: '04', title: 'Engineering notes' },
+  { id: 'stack', index: '05', title: 'Technologies' },
+  { id: 'status', index: '06', title: 'Status' },
+  { id: 'gallery', index: '07', title: 'Gallery' },
+];
+---
+
+<BaseLayout
+  title={data.seo.title}
+  bareTitle
+  description={data.seo.description}
+  crumbs={[{ label: 'projects', href: '/projects' }, { label: project.id }]}
+  pathMeta={`Since ${formatMonth(data.start)}`}
+  ogType="article"
+>
+  <ProjectHeader project={project} />
+
+  <div class="container hero">
+    <ImageFrame image={data.hero} loading="eager" sizes="(max-width: 1240px) 100vw, 1200px" />
+  </div>
+
+  <Contents items={sections} />
+
+  <CaseStudySection id="why" index="01" title="Why it exists">
+    <div class="why">
+      <p class="prose lede">{data.why}</p>
+      <dl class="kv why__facts">
+        <dt>Started</dt>
+        <dd>{formatMonth(data.start)}</dd>
+        <dt>Built by</dt>
+        <dd>One developer, across the whole stack</dd>
+        <dt>Features</dt>
+        <dd>{featureCount} across {data.features.length} areas</dd>
+        <dt>Subsystems</dt>
+        <dd>{functional} of {subsystems.rows.length} functional</dd>
+      </dl>
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="architecture" index="02" title="Architecture">
+    <div class="arch">
+      <ArchitectureDiagram
+        title={architecture.title}
+        steps={architecture.steps}
+        direction="column"
+        class="arch__diagram"
+      />
+      <div class="prose">
+        <p>{data.built}</p>
+        <p>
+          The frontend and the API are separate deployments. The Next.js application on Vercel
+          renders pages and hosts the Three.js viewer; the Express API on Railway owns
+          authentication, project and folder data, marketplace logic, and payments. PostgreSQL
+          holds the records; Cloudflare R2 holds the files.
+        </p>
+      </div>
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="features" index="03" title="Feature map" meta={`${featureCount} features`}>
+    <FeatureList groups={data.features} />
+  </CaseStudySection>
+
+  <CaseStudySection
+    id="engineering"
+    index="04"
+    title="Engineering notes"
+    meta={`${headings.filter((h) => h.depth === 2).length} notes`}
+  >
+    <Notes headings={headings}>
+      <Content />
+    </Notes>
+  </CaseStudySection>
+
+  <CaseStudySection id="stack" index="05" title="Technologies">
+    <TechTags items={data.tech} size="md" />
+  </CaseStudySection>
+
+  <CaseStudySection id="status" index="06" title="Status" meta={subsystems.caption}>
+    <div class="status">
+      <div class="status__text">
+        <StatusLabel kind={data.status.kind} label={data.status.label} />
+        <p class="prose">{data.currentStatus}</p>
+        {
+          data.links.live && (
+            <p class="mono status__link">
+              <ExternalLink href={data.links.live.url}>{data.links.live.label}</ExternalLink>
+            </p>
+          )
+        }
+      </div>
+      <SpecTable
+        title={subsystems.title}
+        rows={subsystems.rows}
+        columns={subsystems.columns}
+        class="status__table"
+      />
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="gallery" index="07" title="Gallery" meta={`${data.gallery.length} images`}>
+    <ProjectGallery images={data.gallery} />
+  </CaseStudySection>
+
+  <ProjectNav currentId={project.id} sourceUrl={data.links.source.url} />
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-bottom: var(--s-7);
+  }
+
+  .lede {
+    font-size: var(--fs-lg);
+    line-height: 1.5;
+    color: var(--text);
+    max-width: 38em;
+  }
+
+  .why {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--s-6) var(--s-8);
+    align-items: start;
+  }
+
+  .why__facts {
+    padding: var(--s-4);
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+  }
+
+  .arch {
+    display: grid;
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: var(--s-6) var(--s-8);
+    align-items: start;
+  }
+
+  .status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: var(--s-6) var(--s-8);
+    align-items: start;
+  }
+
+  .status__text {
+    display: grid;
+    gap: var(--s-4);
+  }
+
+  .status__link {
+    color: var(--text-2);
+  }
+
+  @media (max-width: 900px) {
+    .why,
+    .arch,
+    .status {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,200 @@
+/*
+  Typography.
+
+  Sans-serif (IBM Plex Sans) for anything meant to be read as prose.
+  Monospace (IBM Plex Mono) for interface labels, paths, metadata, dates,
+  buttons, and small section headings. Font files are self-hosted via
+  @fontsource imports in BaseLayout.astro.
+*/
+
+html {
+  font-family: var(--font-sans);
+  font-size: 100%;
+  line-height: var(--lh-body);
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  color: var(--text-body);
+  font-size: var(--fs-base);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--text);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+p {
+  margin: 0;
+  max-width: 68ch;
+}
+
+p + p {
+  margin-top: 1em;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--text-3);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--dur-fast) var(--ease);
+}
+
+a:hover {
+  text-decoration-color: var(--text);
+}
+
+strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Interface text: monospace, uppercase, tracked. */
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--track-mono);
+  text-transform: uppercase;
+  font-feature-settings: 'zero' 1;
+}
+
+.mono--sm {
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--track-mono-wide);
+}
+
+.mono--case {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Display type for names and project titles. */
+.display {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.035em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+.title {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--fs-title);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.03em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+/* Long-form prose blocks (rendered Markdown and page copy). */
+.prose {
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  color: var(--text-body);
+}
+
+.prose > * + * {
+  margin-top: 1em;
+}
+
+.prose h2,
+.prose h3 {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: var(--track-mono);
+  text-transform: uppercase;
+  color: var(--text);
+  margin-top: 2.5em;
+  padding-top: var(--s-3);
+  border-top: var(--line) solid var(--border-2);
+}
+
+.prose h2:first-child,
+.prose h3:first-child {
+  margin-top: 0;
+}
+
+.prose h2 + p,
+.prose h3 + p {
+  margin-top: var(--s-3);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.25em;
+}
+
+.prose li + li {
+  margin-top: 0.35em;
+}
+
+.prose li::marker {
+  color: var(--text-3);
+}
+
+.prose code {
+  color: var(--text);
+  background: var(--panel);
+  border: var(--line) solid var(--border-2);
+  border-radius: var(--radius);
+  padding: 0.05em 0.35em;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  border: var(--line) solid var(--border);
+}
+
+.prose th,
+.prose td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--s-2) var(--s-3);
+  border-bottom: var(--line) solid var(--border-2);
+}
+
+.prose th {
+  font-size: var(--fs-2xs);
+  font-weight: 500;
+  letter-spacing: var(--track-mono);
+  text-transform: uppercase;
+  color: var(--text-2);
+  background: var(--panel);
+}
+
+.prose tr:last-child td {
+  border-bottom: 0;
+}
+
+.prose td:first-child {
+  color: var(--text-2);
+}
+
+.prose td:last-child {
+  color: var(--text);
+}

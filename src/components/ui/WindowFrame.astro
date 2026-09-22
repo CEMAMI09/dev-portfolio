@@ -1,0 +1,102 @@
+---
+/**
+ * A bordered panel with a title bar, in the style of an application window.
+ * Purely presentational framing: the content inside is ordinary HTML.
+ */
+interface Props {
+  title: string;
+  /** Small text at the right end of the title bar. */
+  meta?: string;
+  /** Element used for the wrapper. */
+  as?: 'div' | 'section' | 'aside' | 'article';
+  /** Element used for the title text. Use a heading when the panel is a page section. */
+  titleAs?: 'span' | 'h2' | 'h3';
+  id?: string;
+  class?: string;
+  /** Remove the body padding, for tables or images that should touch the frame. */
+  flush?: boolean;
+}
+
+const {
+  title,
+  meta,
+  as: Tag = 'div',
+  titleAs: TitleTag = 'span',
+  id,
+  class: className,
+  flush = false,
+} = Astro.props;
+---
+
+<Tag class:list={['win', className]} id={id}>
+  <div class="win__bar">
+    <TitleTag class="win__title">{title}</TitleTag>
+    {meta && <span class="win__meta">{meta}</span>}
+  </div>
+  <div class:list={['win__body', { 'win__body--flush': flush }]}>
+    <slot />
+  </div>
+</Tag>
+
+<style>
+  .win {
+    display: flex;
+    flex-direction: column;
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+    min-width: 0;
+  }
+
+  .win__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    min-height: 2rem;
+    padding: 0 var(--s-3);
+    border-bottom: var(--line) solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .win__title,
+  .win__meta {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono-wide);
+    text-transform: uppercase;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .win__title {
+    color: var(--text);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+
+  .win__title::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--text-2);
+    flex: none;
+  }
+
+  .win__meta {
+    color: var(--text-3);
+    text-align: right;
+  }
+
+  .win__body {
+    padding: var(--s-4);
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .win__body--flush {
+    padding: 0;
+  }
+</style>

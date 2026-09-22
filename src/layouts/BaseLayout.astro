@@ -1,0 +1,52 @@
+---
+import Head from '../components/layout/Head.astro';
+import CircuitBackground from '../components/layout/CircuitBackground.astro';
+import SiteHeader from '../components/navigation/SiteHeader.astro';
+import PathBar from '../components/layout/PathBar.astro';
+import Footer from '../components/layout/Footer.astro';
+import type { Crumb } from '../utils/site';
+
+/**
+ * Document layout for inner pages. When this page is shown inside a desktop
+ * window (an iframe), a small script marks the document as embedded so the
+ * outer chrome is hidden.
+ */
+interface Props {
+  title?: string;
+  bareTitle?: boolean;
+  description?: string;
+  crumbs?: Crumb[];
+  pathMeta?: string;
+  ogType?: 'website' | 'article';
+}
+
+const { title, bareTitle, description, crumbs = [], pathMeta, ogType } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Head title={title} bareTitle={bareTitle} description={description} ogType={ogType} />
+    <script is:inline>
+      if (window.self !== window.top) document.documentElement.dataset.embed = 'true';
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <CircuitBackground opacity={0.6} />
+    <div class="frame">
+      <SiteHeader currentPath={Astro.url.pathname} />
+      <PathBar crumbs={crumbs} meta={pathMeta} />
+      <main id="main" tabindex="-1">
+        <slot />
+      </main>
+      <Footer />
+    </div>
+  </body>
+</html>
+
+<style>
+  main:focus {
+    outline: none;
+  }
+</style>

@@ -1,0 +1,596 @@
+---
+import Icon from '../ui/Icon.astro';
+import { desktopApps } from '../../utils/apps';
+
+/**
+ * OS window overlay. The homepage underneath does not move. Clicking an app
+ * opens this frame (title bar, path, min / max / close) over the desktop.
+ * Windows can be dragged from the title bar and resized from the edges.
+ */
+---
+
+<div class="layer" data-window-layer hidden>
+  <section class="appwin" data-app-window tabindex="-1" aria-labelledby="appwin-title">
+    <div class="appwin__grip" data-resize="n"></div>
+    <div class="appwin__grip" data-resize="s"></div>
+    <div class="appwin__grip" data-resize="e"></div>
+    <div class="appwin__grip" data-resize="w"></div>
+    <div class="appwin__grip" data-resize="ne"></div>
+    <div class="appwin__grip" data-resize="nw"></div>
+    <div class="appwin__grip" data-resize="se"></div>
+    <div class="appwin__grip" data-resize="sw"></div>
+
+    <header class="appwin__bar" data-win-drag>
+      <h2 class="appwin__title" id="appwin-title">
+        {
+          desktopApps.map((app) => (
+            <span class="appwin__icon" data-win-icon={app.id} hidden>
+              <Icon name={app.icon} size={14} />
+            </span>
+          ))
+        }
+        <span data-win-title>APP</span>
+      </h2>
+      <div class="appwin__controls">
+        <button class="appwin__btn" type="button" data-win-min aria-label="Minimize">
+          <svg class="appwin__glyph" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M2 6h8"></path>
+          </svg>
+        </button>
+        <button class="appwin__btn" type="button" data-win-max aria-label="Maximize" aria-pressed="false">
+          <svg class="appwin__glyph" data-win-max-box viewBox="0 0 12 12" aria-hidden="true">
+            <rect x="2" y="2" width="8" height="8"></rect>
+          </svg>
+          <svg class="appwin__glyph" data-win-max-restore viewBox="0 0 12 12" aria-hidden="true" hidden>
+            <rect x="3.5" y="1.75" width="6.5" height="6.5"></rect>
+            <rect x="1.75" y="3.5" width="6.5" height="6.5"></rect>
+          </svg>
+        </button>
+        <button class="appwin__btn appwin__btn--close" type="button" data-win-close aria-label="Close window">
+          <svg class="appwin__glyph" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M2 2l8 8M10 2l-8 8"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+    <p class="appwin__path">
+      <span class="visually-hidden">Path: </span>
+      <span data-win-path></span>
+    </p>
+    <div class="appwin__body">
+      <iframe class="appwin__frame" data-win-frame title="Application" src="about:blank"></iframe>
+    </div>
+  </section>
+</div>
+
+<button class="restore" type="button" data-win-restore hidden>Restore</button>
+
+<script>
+  import { desktopApps } from '../../utils/apps';
+
+  const MIN_W = 360;
+  const MIN_H = 240;
+  const MARGIN = 8;
+
+  type Rect = { x: number; y: number; w: number; h: number };
+  type ResizeDir = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+
+  const layer = document.querySelector<HTMLElement>('[data-window-layer]');
+  const win = document.querySelector<HTMLElement>('[data-app-window]');
+  const frame = document.querySelector<HTMLIFrameElement>('[data-win-frame]');
+  const titleEl = document.querySelector<HTMLElement>('[data-win-title]');
+  const pathEl = document.querySelector<HTMLElement>('[data-win-path]');
+  const minBtn = document.querySelector<HTMLButtonElement>('[data-win-min]');
+  const maxBtn = document.querySelector<HTMLButtonElement>('[data-win-max]');
+  const maxBox = document.querySelector<SVGElement>('[data-win-max-box]');
+  const maxRestore = document.querySelector<SVGElement>('[data-win-max-restore]');
+  const closeBtn = document.querySelector<HTMLButtonElement>('[data-win-close]');
+  const restoreBtn = document.querySelector<HTMLButtonElement>('[data-win-restore]');
+  const dragBar = document.querySelector<HTMLElement>('[data-win-drag]');
+  const icons = document.querySelectorAll<HTMLElement>('[data-win-icon]');
+
+  if (layer && win && frame && titleEl && pathEl && minBtn && maxBtn && closeBtn && restoreBtn && dragBar) {
+    let opener: HTMLElement | null = null;
+    let currentId: string | null = null;
+    const saved = new Map<string, Rect>();
+    let lastRect: Rect | null = null;
+
+    const bounds = () => ({
+      w: window.innerWidth,
+      h: window.innerHeight,
+    });
+
+    const defaultRect = (): Rect => {
+      const { w: vw, h: vh } = bounds();
+      const w = Math.min(1080, Math.max(MIN_W, vw - 32));
+      const h = Math.min(736, Math.max(MIN_H, vh - 48));
+      return { x: Math.round((vw - w) / 2), y: Math.round((vh - h) / 2), w, h };
+    };
+
+    const applyRect = (rect: Rect) => {
+      const { w: vw, h: vh } = bounds();
+      const w = Math.min(Math.max(rect.w, MIN_W), vw - MARGIN * 2);
+      const h = Math.min(Math.max(rect.h, MIN_H), vh - MARGIN * 2);
+      const x = Math.min(Math.max(rect.x, MARGIN), vw - w - MARGIN);
+      const y = Math.min(Math.max(rect.y, MARGIN), vh - h - MARGIN);
+      lastRect = { x, y, w, h };
+      win.style.left = `${x}px`;
+      win.style.top = `${y}px`;
+      win.style.width = `${w}px`;
+      win.style.height = `${h}px`;
+    };
+
+    const readRect = (): Rect => {
+      const r = win.getBoundingClientRect();
+      // display:none (minimized / closed) reports 0×0 at the origin.
+      if (r.width < 1 || r.height < 1) {
+        return lastRect ?? defaultRect();
+      }
+      return { x: r.left, y: r.top, w: r.width, h: r.height };
+    };
+
+    const persist = (id: string | null) => {
+      if (!id) return;
+      saved.set(id, win.hasAttribute('data-maximized') ? (lastRect ?? readRect()) : readRect());
+    };
+
+    const setFrameCapture = (on: boolean) => {
+      frame.style.pointerEvents = on ? 'none' : '';
+    };
+
+    const setMaximized = (on: boolean) => {
+      if (on && !win.hasAttribute('data-maximized')) {
+        lastRect = readRect();
+      }
+      win.toggleAttribute('data-maximized', on);
+      maxBtn.setAttribute('aria-pressed', String(on));
+      maxBtn.setAttribute('aria-label', on ? 'Restore' : 'Maximize');
+      if (maxBox && maxRestore) {
+        maxBox.toggleAttribute('hidden', on);
+        maxRestore.toggleAttribute('hidden', !on);
+      }
+      if (on) {
+        win.style.left = `${MARGIN}px`;
+        win.style.top = `${MARGIN}px`;
+        win.style.width = `${window.innerWidth - MARGIN * 2}px`;
+        win.style.height = `${window.innerHeight - MARGIN * 2}px`;
+      } else if (lastRect) {
+        applyRect(lastRect);
+      }
+    };
+
+    const setMinimized = (on: boolean) => {
+      if (on) persist(currentId);
+      layer.toggleAttribute('data-minimized', on);
+      restoreBtn.hidden = !on;
+      if (on) {
+        restoreBtn.textContent = titleEl.textContent?.trim() ?? 'Restore';
+        restoreBtn.setAttribute('aria-label', `Restore ${restoreBtn.textContent}`);
+        restoreBtn.focus();
+      } else {
+        win.focus({ preventScroll: true });
+      }
+    };
+
+    const close = () => {
+      persist(currentId);
+      layer.hidden = true;
+      layer.removeAttribute('data-minimized');
+      restoreBtn.hidden = true;
+      win.removeAttribute('data-maximized');
+      maxBtn.setAttribute('aria-pressed', 'false');
+      maxBtn.setAttribute('aria-label', 'Maximize');
+      if (maxBox && maxRestore) {
+        maxBox.removeAttribute('hidden');
+        maxRestore.setAttribute('hidden', '');
+      }
+      frame.src = 'about:blank';
+      currentId = null;
+      opener?.focus();
+      opener = null;
+    };
+
+    const open = (id: string, from: HTMLElement | null) => {
+      const app = desktopApps.find((item) => item.id === id);
+      if (!app) return;
+
+      if (currentId === id && layer.hasAttribute('data-minimized')) {
+        setMinimized(false);
+        return;
+      }
+
+      if (currentId && currentId !== id) {
+        persist(currentId);
+      }
+
+      opener = from;
+      currentId = id;
+      titleEl.textContent = app.title;
+      pathEl.textContent = app.path;
+      frame.title = app.title;
+      frame.src = app.href;
+      for (const icon of icons) {
+        icon.hidden = icon.dataset.winIcon !== id;
+      }
+      win.removeAttribute('data-maximized');
+      maxBtn.setAttribute('aria-pressed', 'false');
+      maxBtn.setAttribute('aria-label', 'Maximize');
+      if (maxBox && maxRestore) {
+        maxBox.removeAttribute('hidden');
+        maxRestore.setAttribute('hidden', '');
+      }
+      applyRect(saved.get(id) ?? defaultRect());
+      layer.hidden = false;
+      layer.removeAttribute('data-minimized');
+      restoreBtn.hidden = true;
+      win.focus({ preventScroll: true });
+    };
+
+    document.querySelectorAll<HTMLAnchorElement>('[data-app]').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        const id = link.dataset.app;
+        if (!id) return;
+        event.preventDefault();
+        if (currentId === id && !layer.hidden && !layer.hasAttribute('data-minimized')) return;
+        if (currentId === id && layer.hasAttribute('data-minimized')) {
+          setMinimized(false);
+          return;
+        }
+        open(id, link);
+      });
+    });
+
+    minBtn.addEventListener('click', () => setMinimized(true));
+    restoreBtn.addEventListener('click', () => setMinimized(false));
+    maxBtn.addEventListener('click', () => setMaximized(!win.hasAttribute('data-maximized')));
+    closeBtn.addEventListener('click', close);
+
+    dragBar.addEventListener('mousedown', (event) => {
+      if (event.button !== 0) return;
+      if ((event.target as HTMLElement).closest('.appwin__controls')) return;
+      if (win.hasAttribute('data-maximized')) return;
+      event.preventDefault();
+      const start = readRect();
+      const ox = event.clientX;
+      const oy = event.clientY;
+      setFrameCapture(true);
+
+      const move = (e: MouseEvent) => {
+        applyRect({ ...start, x: start.x + (e.clientX - ox), y: start.y + (e.clientY - oy) });
+      };
+      const up = () => {
+        setFrameCapture(false);
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+      };
+      window.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', up);
+    });
+
+    win.querySelectorAll<HTMLElement>('[data-resize]').forEach((grip) => {
+      grip.addEventListener('mousedown', (event) => {
+        if (event.button !== 0) return;
+        if (win.hasAttribute('data-maximized')) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const dir = grip.dataset.resize as ResizeDir;
+        const start = readRect();
+        const ox = event.clientX;
+        const oy = event.clientY;
+        setFrameCapture(true);
+
+        const move = (e: MouseEvent) => {
+          const dx = e.clientX - ox;
+          const dy = e.clientY - oy;
+          let { x, y, w, h } = start;
+          if (dir.includes('e')) w = start.w + dx;
+          if (dir.includes('s')) h = start.h + dy;
+          if (dir.includes('w')) {
+            w = start.w - dx;
+            x = start.x + dx;
+          }
+          if (dir.includes('n')) {
+            h = start.h - dy;
+            y = start.y + dy;
+          }
+          if (w < MIN_W) {
+            if (dir.includes('w')) x = start.x + start.w - MIN_W;
+            w = MIN_W;
+          }
+          if (h < MIN_H) {
+            if (dir.includes('n')) y = start.y + start.h - MIN_H;
+            h = MIN_H;
+          }
+          applyRect({ x, y, w, h });
+        };
+        const up = () => {
+          setFrameCapture(false);
+          window.removeEventListener('mousemove', move);
+          window.removeEventListener('mouseup', up);
+        };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+      });
+    });
+
+    dragBar.addEventListener('dblclick', (event) => {
+      if ((event.target as HTMLElement).closest('.appwin__controls')) return;
+      setMaximized(!win.hasAttribute('data-maximized'));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || layer.hidden) return;
+      if (layer.hasAttribute('data-minimized')) {
+        setMinimized(false);
+        return;
+      }
+      close();
+    });
+  }
+</script>
+
+<style>
+  .layer {
+    position: fixed;
+    inset: 0;
+    z-index: 12;
+    pointer-events: none;
+  }
+
+  .layer[hidden],
+  .layer[data-minimized] {
+    display: none;
+  }
+
+  .appwin {
+    --win-bar: 2.15rem;
+    --grip: 8px;
+    pointer-events: auto;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    min-width: 0;
+    min-height: 0;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  }
+
+  .appwin:focus {
+    outline: none;
+  }
+
+  .appwin:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: 2px;
+  }
+
+  .appwin__grip {
+    position: absolute;
+    z-index: 3;
+  }
+
+  .appwin__grip[data-resize='n'],
+  .appwin__grip[data-resize='s'] {
+    left: var(--grip);
+    right: var(--grip);
+    height: var(--grip);
+    cursor: ns-resize;
+  }
+
+  .appwin__grip[data-resize='e'],
+  .appwin__grip[data-resize='w'] {
+    top: var(--grip);
+    bottom: var(--grip);
+    width: var(--grip);
+    cursor: ew-resize;
+  }
+
+  .appwin__grip[data-resize='n'] { top: 0; }
+  .appwin__grip[data-resize='s'] { bottom: 0; }
+  .appwin__grip[data-resize='e'] { right: 0; }
+  .appwin__grip[data-resize='w'] { left: 0; }
+
+  .appwin__grip[data-resize='ne'],
+  .appwin__grip[data-resize='nw'],
+  .appwin__grip[data-resize='se'],
+  .appwin__grip[data-resize='sw'] {
+    width: 14px;
+    height: 14px;
+  }
+
+  .appwin__grip[data-resize='ne'] { top: 0; right: 0; cursor: nesw-resize; }
+  .appwin__grip[data-resize='nw'] { top: 0; left: 0; cursor: nwse-resize; }
+  .appwin__grip[data-resize='se'] { bottom: 0; right: 0; cursor: nwse-resize; }
+  .appwin__grip[data-resize='sw'] { bottom: 0; left: 0; cursor: nesw-resize; }
+
+  .appwin[data-maximized] .appwin__grip {
+    display: none;
+  }
+
+  .appwin__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    min-height: var(--win-bar);
+    height: var(--win-bar);
+    box-sizing: content-box;
+    padding: 0 0 0 0.7rem;
+    background: var(--bg-raised);
+    border-bottom: var(--line) solid var(--border);
+    flex: none;
+    cursor: grab;
+    user-select: none;
+  }
+
+  .appwin__bar:active {
+    cursor: grabbing;
+  }
+
+  .appwin[data-maximized] .appwin__bar {
+    cursor: default;
+  }
+
+  .appwin__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .appwin__icon {
+    display: inline-flex;
+  }
+
+  .appwin__icon[hidden] {
+    display: none;
+  }
+
+  .appwin__controls {
+    display: flex;
+    align-items: stretch;
+    align-self: stretch;
+    cursor: default;
+  }
+
+  .appwin__btn {
+    position: relative;
+    display: grid;
+    grid-template: 1fr / 1fr;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--win-bar);
+    height: var(--win-bar);
+    padding: 0 0 0 1px;
+    color: var(--text-2);
+    border: 0;
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+
+  .appwin__btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background: var(--border);
+    pointer-events: none;
+  }
+
+  .appwin__glyph {
+    grid-area: 1 / 1;
+    width: 12px;
+    height: 12px;
+    display: block;
+    margin: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.25;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .appwin__glyph[hidden] {
+    display: none;
+  }
+
+  .appwin__btn:hover,
+  .appwin__btn:focus-visible {
+    background: var(--panel);
+    color: var(--white);
+    outline: none;
+  }
+
+  .appwin__btn--close:hover,
+  .appwin__btn--close:focus-visible {
+    background: var(--text);
+    color: var(--bg);
+  }
+
+  .appwin__path {
+    flex: none;
+    margin: 0;
+    padding: 0.35rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    border-bottom: var(--line) solid var(--border-2);
+    max-width: none;
+  }
+
+  .appwin__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    background: var(--bg);
+  }
+
+  .appwin__frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--bg);
+  }
+
+  .restore {
+    position: fixed;
+    top: 1.05rem;
+    left: 1.2rem;
+    z-index: 13;
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--text);
+    border-radius: var(--radius);
+    padding: 0.28rem 0.6rem;
+  }
+
+  .restore:hover,
+  .restore:focus-visible {
+    background: var(--white);
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .layer:not([hidden]) .appwin {
+      animation: win-open var(--dur) var(--ease);
+    }
+  }
+
+  @keyframes win-open {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .appwin__grip {
+      display: none;
+    }
+
+    .appwin__bar {
+      cursor: default;
+    }
+  }
+</style>

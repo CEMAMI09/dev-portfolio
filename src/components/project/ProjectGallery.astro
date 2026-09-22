@@ -1,0 +1,29 @@
+---
+import ImageFrame from '../ui/ImageFrame.astro';
+import type { FrameImage } from '../../utils/types';
+
+interface Props {
+  images: FrameImage[];
+  class?: string;
+}
+
+const { images, class: className } = Astro.props;
+---
+
+{
+  images.length > 0 && (
+    <div class:list={['gallery', className]}>
+      {images.map((image) => (
+        <ImageFrame image={image} sizes="(max-width: 720px) 100vw, (max-width: 1240px) 50vw, 600px" />
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: var(--s-4);
+  }
+</style>

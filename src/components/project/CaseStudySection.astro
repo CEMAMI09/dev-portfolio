@@ -1,0 +1,28 @@
+---
+import SectionHeader from '../ui/SectionHeader.astro';
+
+/**
+ * One section of a case study: numbered monospace header plus content.
+ * The `id` doubles as the anchor used by the page's contents list.
+ */
+interface Props {
+  id: string;
+  index: string;
+  title: string;
+  meta?: string;
+  class?: string;
+}
+
+const { id, index, title, meta, class: className } = Astro.props;
+---
+
+<section class:list={['section', 'container', 'cs', className]} id={id} aria-labelledby={`${id}-title`}>
+  <SectionHeader id={`${id}-title`} index={index} title={title} meta={meta} />
+  <slot />
+</section>
+
+<style>
+  .cs {
+    scroll-margin-top: 3.5rem;
+  }
+</style>

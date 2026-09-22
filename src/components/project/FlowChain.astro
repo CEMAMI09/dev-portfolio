@@ -1,0 +1,63 @@
+---
+/**
+ * Compact inline flow: DEVICE → GATEWAY → WEBHOOK. Used where the full
+ * ArchitectureDiagram would be too heavy (records, index rows).
+ */
+interface Props {
+  steps: readonly string[];
+  label?: string;
+  class?: string;
+}
+
+const { steps, label = 'Data flow', class: className } = Astro.props;
+---
+
+<ol class:list={['chain', className]} role="list" aria-label={label}>
+  {
+    steps.map((step, i) => (
+      <li class="chain__step">
+        <span class="chain__box">{step}</span>
+        {i < steps.length - 1 && (
+          <span class="chain__arrow" aria-hidden="true">
+            →
+          </span>
+        )}
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) 0;
+  }
+
+  .chain__step {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .chain__box {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text);
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.4rem 0.5rem;
+    line-height: 1;
+    white-space: nowrap;
+    background: var(--panel);
+  }
+
+  .chain__arrow {
+    font-family: var(--font-mono);
+    color: var(--text-3);
+    padding-inline: var(--s-2);
+    font-size: var(--fs-xs);
+  }
+</style>

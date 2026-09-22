@@ -1,0 +1,89 @@
+---
+import { buildDate, site } from '../../utils/site';
+import { isoDate } from '../../utils/format';
+---
+
+<footer class="ftr container">
+  <div class="ftr__grid">
+    <div class="ftr__id">
+      <p class="ftr__name">{site.name}</p>
+      <p class="ftr__loc mono">{site.location}</p>
+    </div>
+
+    <ul class="ftr__links" role="list">
+      <li><a class="link link--ul mono--case" href={`mailto:${site.email}`}>{site.email}</a></li>
+      <li>
+        <a class="link link--ul" href={site.github} target="_blank" rel="noopener noreferrer">
+          GitHub<span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      </li>
+      <li>
+        <a class="link link--ul" href={site.linkedin} target="_blank" rel="noopener noreferrer">
+          LinkedIn<span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      </li>
+    </ul>
+
+    <p class="ftr__meta mono--sm">
+      <span>{buildDate.getFullYear()}</span>
+      <span class="ftr__build">Build {isoDate(buildDate)}</span>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    border-top: var(--line) solid var(--border);
+    padding-block: var(--s-6);
+    margin-top: auto;
+  }
+
+  .ftr__grid {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: var(--s-6);
+    align-items: start;
+  }
+
+  .ftr__name {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .ftr__loc {
+    color: var(--text-3);
+    margin-top: var(--s-1);
+  }
+
+  .ftr__links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+
+  .ftr__meta {
+    font-family: var(--font-mono);
+    color: var(--text-3);
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+
+  @media (max-width: 640px) {
+    .ftr__grid {
+      grid-template-columns: 1fr;
+      gap: var(--s-5);
+    }
+
+    .ftr__meta {
+      text-align: left;
+      flex-direction: row;
+      gap: var(--s-4);
+    }
+  }
+</style>

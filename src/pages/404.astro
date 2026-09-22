@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import WindowFrame from '../components/ui/WindowFrame.astro';
+import { site } from '../utils/site';
+---
+
+<BaseLayout title="404 — File not found" bareTitle crumbs={[{ label: '?' }]} pathMeta="Error 404">
+  <div class="container nf">
+    <WindowFrame title="ERROR" meta="404" as="section">
+      <div class="nf__body">
+        <p class="nf__code mono">404</p>
+        <h1 class="nf__title">File not found</h1>
+        <p class="prose">
+          Nothing exists at this path under <code>{site.pathRoot}/</code>. It may have moved, or the
+          address may have been typed incorrectly.
+        </p>
+        <div class="nf__actions">
+          <a class="btn btn--primary" href="/">Back to desktop</a>
+          <a class="btn" href="/projects">Projects</a>
+        </div>
+      </div>
+    </WindowFrame>
+  </div>
+</BaseLayout>
+
+<style>
+  .nf {
+    padding-block: var(--s-9);
+    max-width: calc(36rem + 2 * var(--gutter));
+  }
+
+  .nf__body {
+    display: grid;
+    gap: var(--s-4);
+    padding: var(--s-2);
+  }
+
+  .nf__code {
+    color: var(--text-3);
+    font-size: var(--fs-xl);
+  }
+
+  .nf__title {
+    font-size: var(--fs-2xl);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-2);
+  }
+</style>

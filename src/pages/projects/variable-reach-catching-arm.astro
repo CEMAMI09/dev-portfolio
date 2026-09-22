@@ -1,0 +1,290 @@
+---
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectHeader from '../../components/project/ProjectHeader.astro';
+import Contents from '../../components/project/Contents.astro';
+import CaseStudySection from '../../components/project/CaseStudySection.astro';
+import ArchitectureDiagram from '../../components/project/ArchitectureDiagram.astro';
+import FeatureList from '../../components/project/FeatureList.astro';
+import Notes from '../../components/project/Notes.astro';
+import SpecTable from '../../components/project/SpecTable.astro';
+import ProjectGallery from '../../components/project/ProjectGallery.astro';
+import ProjectNav from '../../components/project/ProjectNav.astro';
+import ImageFrame from '../../components/ui/ImageFrame.astro';
+import TechTags from '../../components/ui/TechTags.astro';
+import StatusLabel from '../../components/ui/StatusLabel.astro';
+
+const project = await getEntry('projects', 'variable-reach-catching-arm');
+if (!project) throw new Error('Missing content entry: projects/variable-reach-catching-arm');
+const { data } = project;
+const { Content, headings } = await render(project);
+
+const table = (id: string) => {
+  const t = data.tables.find((x) => x.id === id);
+  if (!t) throw new Error(`arm: missing table "${id}"`);
+  return t;
+};
+const list = (id: string) => {
+  const l = data.lists.find((x) => x.id === id);
+  if (!l) throw new Error(`arm: missing list "${id}"`);
+  return l;
+};
+const pipeline = data.diagrams.find((d) => d.id === 'pipeline');
+if (!pipeline) throw new Error('arm: missing diagram "pipeline"');
+
+// Documentation-style numbering.
+const sections = [
+  { id: 'purpose', index: '1.0', title: 'Purpose' },
+  { id: 'state', index: '2.0', title: 'System state' },
+  { id: 'pipeline', index: '3.0', title: 'Catch pipeline' },
+  { id: 'scope', index: '4.0', title: 'Scope of work' },
+  { id: 'engineering', index: '5.0', title: 'Engineering notes' },
+  { id: 'hardware', index: '6.0', title: 'Hardware and software' },
+  { id: 'budget', index: '7.0', title: 'Budget and targets' },
+  { id: 'status', index: '8.0', title: 'Status' },
+  { id: 'gallery', index: '9.0', title: 'CAD and animations' },
+];
+---
+
+<BaseLayout
+  title={data.seo.title}
+  bareTitle
+  description={data.seo.description}
+  crumbs={[{ label: 'projects', href: '/projects' }, { label: project.id }]}
+  pathMeta={`Status: ${data.status.label}`}
+  ogType="article"
+>
+  <ProjectHeader project={project} />
+
+  <div class="container hero">
+    <ImageFrame image={data.hero} loading="eager" sizes="(max-width: 1240px) 100vw, 1200px" />
+    <p class="mono hero-note">
+      Rendered from the FreeCAD assembly in the repository. The motion GIF is in the
+      gallery below. Design-stage CAD; no physical build yet.
+    </p>
+  </div>
+
+  <Contents items={sections} />
+
+  <CaseStudySection id="purpose" index="1.0" title="Purpose">
+    <p class="prose lede">{data.why}</p>
+    <p class="prose purpose-note">
+      Catching is a useful problem for this because the interception window is short and fixed by
+      physics: the ball arrives when it arrives. The extra degree of freedom has to be planned and
+      executed inside that window or it is not worth having.
+    </p>
+  </CaseStudySection>
+
+  <CaseStudySection id="state" index="2.0" title="System state">
+    <div class="two-col">
+      <div class="prose">
+        <p>
+          The arm is stationary. Its configuration is three values: yaw and pitch of the boom, and
+          how far the boom is extended.
+        </p>
+        <p class="eq-block"><code class="eq">q = [θ<sub>y</sub>, θ<sub>p</sub>, L]</code></p>
+        <p>
+          A fixed-reach arm would plan a target (θ<sub>y</sub>, θ<sub>p</sub>) for the predicted
+          catch point. This one also has to pick L, which changes both where the catcher ends up
+          and how hard the pitch axis has to work to get there.
+        </p>
+      </div>
+      <SpecTable {...table('state')} />
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="pipeline" index="3.0" title="Catch pipeline">
+    <div class="pipeline">
+      <ArchitectureDiagram
+        title={pipeline.title}
+        steps={pipeline.steps}
+        direction="column"
+        numbered
+        class="pipeline__diagram"
+      />
+      <div class="pipeline__text prose">
+        <p>
+          A camera watches the toss volume. Frames go through ball detection, then a ballistic
+          model with a Kalman-style filter estimates where the ball is and where it is going.
+        </p>
+        <p>
+          From the predicted path, the planner picks a reachable intercept point, decides how far
+          the boom needs to extend to get there, and generates synchronized trajectories for all
+          three axes so they arrive together. The Teensy runs the motor control loop and the
+          safety logic; the host does the vision and planning.
+        </p>
+        <p>
+          The catcher holds the ball with a retention mechanism once it lands. A throw-back
+          experiment is listed as future work.
+        </p>
+      </div>
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="scope" index="4.0" title="Scope of work">
+    <p class="prose lede">{data.built}</p>
+    <div class="features">
+      <p class="label features__label">Planned capabilities</p>
+      <FeatureList groups={data.features} />
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection
+    id="engineering"
+    index="5.0"
+    title="Engineering notes"
+    meta={`${headings.filter((h) => h.depth === 2).length} notes`}
+  >
+    <Notes headings={headings}>
+      <Content />
+    </Notes>
+    <div class="loads">
+      <SpecTable {...table('loads')} />
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="hardware" index="6.0" title="Hardware and software">
+    <div class="two-col two-col--even">
+      <div>
+        <p class="label list-label">{list('hardware').title}</p>
+        <ul class="list">
+          {list('hardware').items.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+      <div>
+        <p class="label list-label">{list('software').title}</p>
+        <ul class="list">
+          {list('software').items.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+    </div>
+    <div class="tags-row">
+      <TechTags items={data.tech} size="md" />
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="budget" index="7.0" title="Budget and targets" meta="Design stage">
+    <div class="two-col two-col--even">
+      <SpecTable {...table('budget')} />
+      <SpecTable {...table('targets')} />
+    </div>
+    <p class="prose budget-note">
+      The BOM total comes from <code>engineering/bom.csv</code> in the repository and will move
+      as parts are ordered. The catch-rate figure is the acceptance target for the first build,
+      not a result.
+    </p>
+  </CaseStudySection>
+
+  <CaseStudySection id="status" index="8.0" title="Status">
+    <div class="status-row">
+      <StatusLabel kind={data.status.kind} label={data.status.label} />
+      <p class="prose">{data.currentStatus}</p>
+    </div>
+  </CaseStudySection>
+
+  <CaseStudySection id="gallery" index="9.0" title="CAD and animations" meta={`${data.gallery.length} items`}>
+    <ProjectGallery images={data.gallery} />
+  </CaseStudySection>
+
+  <ProjectNav currentId={project.id} sourceUrl={data.links.source.url} />
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-bottom: var(--s-7);
+  }
+
+  .hero-note {
+    margin-top: var(--s-3);
+    color: var(--text-3);
+    text-transform: none;
+    letter-spacing: 0;
+    max-width: none;
+  }
+
+  .hero-note code {
+    color: var(--text-2);
+  }
+
+  .lede {
+    font-size: var(--fs-lg);
+    line-height: 1.5;
+    color: var(--text);
+    max-width: 38em;
+  }
+
+  .purpose-note {
+    margin-top: var(--s-5);
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--s-6) var(--s-8);
+    align-items: start;
+  }
+
+  .two-col--even {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: var(--s-6);
+  }
+
+  .eq-block {
+    padding: var(--s-4);
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+    text-align: center;
+  }
+
+  .eq {
+    font-size: var(--fs-lg);
+    color: var(--text);
+  }
+
+  .eq sub {
+    font-size: 0.7em;
+    line-height: 0;
+  }
+
+  .pipeline {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    gap: var(--s-6) var(--s-8);
+    align-items: start;
+  }
+
+  .features {
+    margin-top: var(--s-6);
+  }
+
+  .features__label,
+  .list-label {
+    margin-bottom: var(--s-3);
+  }
+
+  .loads {
+    margin-top: var(--s-6);
+  }
+
+  .tags-row {
+    margin-top: var(--s-6);
+  }
+
+  .budget-note {
+    margin-top: var(--s-5);
+    font-size: var(--fs-base);
+  }
+
+  .status-row {
+    display: grid;
+    gap: var(--s-4);
+  }
+
+  @media (max-width: 900px) {
+    .two-col,
+    .pipeline {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

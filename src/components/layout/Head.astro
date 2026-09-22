@@ -1,0 +1,55 @@
+---
+import '@fontsource/ibm-plex-sans/400.css';
+import '@fontsource/ibm-plex-sans/500.css';
+import '@fontsource/ibm-plex-sans/600.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '@fontsource/ibm-plex-mono/600.css';
+import sans400 from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url';
+import mono400 from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url';
+import '../../styles/global.css';
+import { site } from '../../utils/site';
+
+/**
+ * Contents of <head> shared by every layout: metadata, fonts, Open Graph.
+ * Layouts render this inside their own <head> element.
+ */
+interface Props {
+  title?: string;
+  bareTitle?: boolean;
+  description?: string;
+  ogType?: 'website' | 'article';
+}
+
+const { title, bareTitle = false, description = site.description, ogType = 'website' } = Astro.props;
+
+const fullTitle = title ? (bareTitle ? title : `${title} — ${site.name}`) : site.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.png', Astro.site);
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<meta name="author" content={site.name} />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#050505" />
+<link rel="canonical" href={canonical} />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="preload" href={sans400} as="font" type="font/woff2" crossorigin />
+<link rel="preload" href={mono400} as="font" type="font/woff2" crossorigin />
+
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={`${site.name} — Software Developer, Electrical Engineering Student`} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />

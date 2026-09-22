@@ -1,0 +1,188 @@
+---
+import { generateCircuit } from '../../utils/circuit';
+
+/**
+ * Fixed, non-interactive circuit-board backdrop. The geometry is generated at
+ * build time (see utils/circuit.ts); the only runtime cost is a few
+ * stroke-dashoffset animations for the moving pulses, which are disabled when
+ * the user prefers reduced motion.
+ */
+interface Props {
+  /** Lower values make the board fainter. */
+  opacity?: number;
+}
+
+const { opacity = 1 } = Astro.props;
+
+const circuit = generateCircuit({
+  width: 1920,
+  height: 1080,
+  pitch: 44,
+  seed: 20260906,
+  traceCount: 56,
+  chipCount: 7,
+  pulseRatio: 0.62,
+  pulseSpeed: 36,
+});
+
+const fmt = (n: number) => Math.round(n * 100) / 100;
+---
+
+<div class="bgfx" aria-hidden="true" style={`--bgfx-opacity: ${opacity}`}>
+  <div class="bgfx__grid"></div>
+  <svg
+    class="bgfx__svg"
+    viewBox={`0 0 ${circuit.width} ${circuit.height}`}
+    preserveAspectRatio="xMidYMid slice"
+    focusable="false"
+  >
+    <g class="bgfx__traces">
+      {circuit.traces.map((t) => <path d={t.d} />)}
+    </g>
+
+    <g class="bgfx__chips">
+      {
+        circuit.chips.map((chip) => (
+          <>
+            <rect x={fmt(chip.x)} y={fmt(chip.y)} width={fmt(chip.width)} height={fmt(chip.height)} />
+            <circle cx={fmt(chip.x + 8)} cy={fmt(chip.y + 8)} r="2" />
+            {chip.pins.map((p) => (
+              <line x1={fmt(p.x1)} y1={fmt(p.y1)} x2={fmt(p.x2)} y2={fmt(p.y2)} />
+            ))}
+          </>
+        ))
+      }
+    </g>
+
+    <g class="bgfx__pads">
+      {
+        circuit.pads.map((pad) =>
+          pad.kind === 'via' ? (
+            <>
+              <circle cx={pad.x} cy={pad.y} r="3.5" />
+              <circle class="bgfx__hole" cx={pad.x} cy={pad.y} r="1.25" />
+            </>
+          ) : (
+            <rect x={pad.x - 3.5} y={pad.y - 3.5} width="7" height="7" />
+          ),
+        )
+      }
+    </g>
+
+    <g class="bgfx__pulses">
+      {
+        circuit.traces
+          .filter((t) => t.pulse)
+          .map((t) => (
+            <path
+              d={t.d}
+              style={`--cycle: ${fmt(t.pulse!.cycle)}px; --neg: ${fmt(-t.pulse!.cycle)}px; animation-duration: ${fmt(t.pulse!.duration)}s; animation-delay: ${fmt(t.pulse!.delay)}s`}
+            />
+          ))
+      }
+    </g>
+  </svg>
+  <div class="bgfx__fade"></div>
+</div>
+
+<style>
+  .bgfx {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: var(--bgfx-opacity, 1);
+    /* Board: dark gray, low opacity. Pulses are a step brighter so data
+       moving through the traces is visible without competing with text. */
+    --trace: #353535;
+    --pad: #404040;
+    --chip: #3a3a3a;
+    --pulse: #7a7a7a;
+  }
+
+  .bgfx__svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: relative;
+  }
+
+  .bgfx__grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, #2a2a2a 0.7px, transparent 0.85px);
+    background-size: 22px 22px;
+    opacity: 0.55;
+  }
+
+  .bgfx__traces path {
+    fill: none;
+    stroke: var(--trace);
+    stroke-width: 1.25;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+
+  .bgfx__chips rect {
+    fill: var(--bg);
+    stroke: var(--chip);
+    stroke-width: 1.25;
+  }
+
+  .bgfx__chips circle {
+    fill: var(--chip);
+  }
+
+  .bgfx__chips line {
+    stroke: var(--trace);
+    stroke-width: 1.25;
+  }
+
+  .bgfx__pads rect,
+  .bgfx__pads circle {
+    fill: var(--bg);
+    stroke: var(--pad);
+    stroke-width: 1.25;
+  }
+
+  .bgfx__pads .bgfx__hole {
+    fill: var(--pad);
+    stroke: none;
+  }
+
+  .bgfx__pulses path {
+    fill: none;
+    stroke: var(--pulse);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 26px var(--cycle);
+    stroke-dashoffset: 26px;
+    animation-name: travel;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes travel {
+    from {
+      stroke-dashoffset: 26px;
+    }
+    to {
+      stroke-dashoffset: var(--neg);
+    }
+  }
+
+  /* Keep the middle of the screen slightly clearer for text. */
+  .bgfx__fade {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 52% 46% at 50% 42%, rgba(5, 5, 5, 0.72), rgba(5, 5, 5, 0.12) 100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bgfx__pulses {
+      display: none;
+    }
+  }
+</style>

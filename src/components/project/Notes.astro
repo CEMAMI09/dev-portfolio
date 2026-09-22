@@ -1,0 +1,96 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+/**
+ * Engineering notes rendered from the entry's Markdown body, with a sticky
+ * list of the note headings beside them on wide screens.
+ */
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+const notes = headings.filter((h) => h.depth === 2);
+---
+
+<div class="notes">
+  {
+    notes.length > 1 && (
+      <nav class="notes__nav" aria-label="Engineering notes">
+        <ol class="notes__list" role="list">
+          {notes.map((h, i) => (
+            <li>
+              <a class="notes__link" href={`#${h.slug}`}>
+                <span class="notes__num">{String(i + 1).padStart(2, '0')}</span>
+                {h.text}
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    )
+  }
+  <div class="notes__body prose">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .notes {
+    display: grid;
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: var(--s-6) var(--s-8);
+    align-items: start;
+  }
+
+  .notes__nav {
+    position: sticky;
+    top: 4rem;
+  }
+
+  .notes__list {
+    display: flex;
+    flex-direction: column;
+    border-left: var(--line) solid var(--border-2);
+  }
+
+  .notes__link {
+    display: flex;
+    gap: var(--s-3);
+    padding: var(--s-2) var(--s-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text-2);
+    margin-left: -1px;
+    border-left: var(--line) solid transparent;
+    transition:
+      color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+
+  .notes__link:hover {
+    color: var(--text);
+    border-left-color: var(--text);
+  }
+
+  .notes__num {
+    color: var(--text-3);
+  }
+
+  .notes__body :global(h2) {
+    scroll-margin-top: 4rem;
+  }
+
+  @media (max-width: 900px) {
+    .notes {
+      grid-template-columns: 1fr;
+    }
+
+    .notes__nav {
+      position: static;
+    }
+  }
+</style>

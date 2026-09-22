@@ -1,0 +1,59 @@
+---
+/**
+ * Feature groups. A single unnamed group renders as one two-column list;
+ * multiple named groups render as a grid of labelled lists.
+ */
+interface Group {
+  group?: string;
+  items: string[];
+}
+
+interface Props {
+  groups: Group[];
+  class?: string;
+}
+
+const { groups, class: className } = Astro.props;
+const single = groups.length === 1 && !groups[0]?.group;
+---
+
+{
+  single ? (
+    <ul class:list={['list', 'list--cols', className]}>
+      {groups[0]?.items.map((item) => <li>{item}</li>)}
+    </ul>
+  ) : (
+    <div class:list={['fgroups', className]}>
+      {groups.map((g) => (
+        <section class="fgroup">
+          <h3 class="fgroup__title">{g.group}</h3>
+          <ul class="list">
+            {g.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )
+}
+
+<style>
+  .fgroups {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--s-6) var(--s-6);
+  }
+
+  .fgroup__title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono-wide);
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding-bottom: var(--s-2);
+    margin-bottom: var(--s-3);
+    border-bottom: var(--line) solid var(--border-2);
+  }
+</style>

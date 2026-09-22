@@ -1,0 +1,84 @@
+---
+import { site } from '../../utils/site';
+
+/**
+ * The email address as a mailto link, with a button that copies it to the
+ * clipboard. Confirmation is announced through a live region.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<div class:list={['copy-email', className]} data-copy-email>
+  <a class="copy-email__addr" href={`mailto:${site.email}`}>{site.email}</a>
+  <button class="btn btn--sm" type="button" data-copy={site.email}>
+    <span data-copy-label>Copy</span>
+  </button>
+  <span class="visually-hidden" role="status" aria-live="polite" data-copy-status></span>
+</div>
+
+<script>
+  const roots = document.querySelectorAll<HTMLElement>('[data-copy-email]');
+
+  for (const root of roots) {
+    const button = root.querySelector<HTMLButtonElement>('[data-copy]');
+    const label = root.querySelector<HTMLElement>('[data-copy-label]');
+    const status = root.querySelector<HTMLElement>('[data-copy-status]');
+    if (!button || !label || !status) continue;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    button.addEventListener('click', async () => {
+      const value = button.dataset.copy ?? '';
+      let copied = false;
+
+      try {
+        await navigator.clipboard.writeText(value);
+        copied = true;
+      } catch {
+        // Clipboard API unavailable (insecure context or permission denied).
+        // Select the address so it can be copied manually.
+        const addr = root.querySelector('.copy-email__addr');
+        if (addr) {
+          const range = document.createRange();
+          range.selectNodeContents(addr);
+          const selection = window.getSelection();
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+      }
+
+      label.textContent = copied ? 'Copied' : 'Select and copy';
+      status.textContent = copied ? 'Email address copied to clipboard' : 'Email address selected';
+
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        label.textContent = 'Copy';
+        status.textContent = '';
+      }, 1800);
+    });
+  }
+</script>
+
+<style>
+  .copy-email {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    flex-wrap: wrap;
+  }
+
+  .copy-email__addr {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+    text-decoration-color: var(--border);
+  }
+
+  .copy-email__addr:hover {
+    text-decoration-color: var(--text);
+  }
+</style>

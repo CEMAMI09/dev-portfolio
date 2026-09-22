@@ -1,0 +1,82 @@
+---
+/**
+ * Small monospace section heading with a rule that fills the remaining width
+ * and optional metadata on the right:  02  SELECTED WORK ———————— 3 ENTRIES
+ */
+interface Props {
+  title: string;
+  /** Section number shown before the title, e.g. "02" or "3.0". */
+  index?: string;
+  meta?: string;
+  /** Optional link rendered after the meta text. */
+  link?: { label: string; href: string };
+  level?: 2 | 3;
+  id?: string;
+}
+
+const { title, index, meta, link, level = 2, id } = Astro.props;
+const Heading = `h${level}` as 'h2' | 'h3';
+---
+
+<div class="sh">
+  <Heading class="sh__title" id={id}>
+    {index && <span class="sh__index">{index}</span>}
+    {title}
+  </Heading>
+  <span class="rule" aria-hidden="true"></span>
+  {meta && <span class="sh__meta">{meta}</span>}
+  {
+    link && (
+      <a class="sh__link link" href={link.href}>
+        {link.label} <span aria-hidden="true">→</span>
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .sh {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    margin-bottom: var(--s-5);
+  }
+
+  .sh__title {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--s-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono-wide);
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .sh__index {
+    color: var(--text-3);
+    font-weight: 400;
+  }
+
+  .sh__meta {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+
+  .sh__link {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 480px) {
+    .sh__meta {
+      display: none;
+    }
+  }
+</style>

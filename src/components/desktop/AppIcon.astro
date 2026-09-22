@@ -1,0 +1,71 @@
+---
+import Icon from '../ui/Icon.astro';
+import type { IconName } from '../../utils/types';
+
+/**
+ * A desktop "app": a large line icon with an inverted filename label beneath it.
+ */
+interface Props {
+  href: string;
+  label: string;
+  icon: IconName;
+  description?: string;
+  /** When set, the homepage window overlay intercepts the click. */
+  appId?: string;
+}
+
+const { href, label, icon, description, appId } = Astro.props;
+---
+
+<a class="app" href={href} data-app={appId}>
+  <span class="app__icon">
+    <Icon name={icon} size={56} />
+  </span>
+  <span class="app__label">{label}</span>
+  {description && <span class="visually-hidden">, {description}</span>}
+</a>
+
+<style>
+  .app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    width: 7.25rem;
+    padding: 0.85rem 0.5rem 0.65rem;
+    text-decoration: none;
+    color: var(--text);
+    border: var(--line) solid transparent;
+    border-radius: 4px;
+    transition:
+      border-color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+
+  .app__icon {
+    display: grid;
+    place-items: center;
+    width: 3.75rem;
+    height: 3.75rem;
+    color: var(--white);
+  }
+
+  .app__label {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1;
+    padding: 0.32rem 0.72rem;
+    color: var(--bg);
+    background: var(--white);
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .app:hover,
+  .app:focus-visible {
+    border-color: var(--text-3);
+    background: rgba(255, 255, 255, 0.03);
+    outline: none;
+  }
+</style>

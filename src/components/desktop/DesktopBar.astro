@@ -1,0 +1,81 @@
+---
+import Icon from '../ui/Icon.astro';
+
+/**
+ * Floating system status in the top-right of the desktop: local time and date.
+ */
+---
+
+<header class="dbar">
+  <p class="visually-hidden">Cody Emami — desktop</p>
+  <div class="dbar__status" data-desktop-clock>
+    <span class="dbar__item">
+      <Icon name="clock" size={15} />
+      <time class="dbar__time" data-clock-time>--:--</time>
+    </span>
+    <span class="dbar__item">
+      <Icon name="house" size={15} />
+      <time class="dbar__date" data-clock-date></time>
+    </span>
+  </div>
+</header>
+
+<script>
+  const timeEl = document.querySelector<HTMLTimeElement>('[data-clock-time]');
+  const dateEl = document.querySelector<HTMLTimeElement>('[data-clock-date]');
+
+  if (timeEl && dateEl) {
+    const timeFmt = new Intl.DateTimeFormat(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    const dateFmt = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    const tick = () => {
+      const now = new Date();
+      timeEl.textContent = timeFmt.format(now);
+      timeEl.dateTime = now.toISOString();
+      dateEl.textContent = dateFmt.format(now);
+      dateEl.dateTime = now.toISOString().slice(0, 10);
+      window.setTimeout(tick, 60_000 - (now.getSeconds() * 1000 + now.getMilliseconds()) + 50);
+    };
+
+    tick();
+  }
+</script>
+
+<style>
+  .dbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 2;
+    padding: 1.1rem 1.4rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text);
+  }
+
+  .dbar__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.35rem;
+  }
+
+  .dbar__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: 0.02em;
+  }
+
+  .dbar__date:empty {
+    display: none;
+  }
+</style>

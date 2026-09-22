@@ -1,0 +1,211 @@
+---
+import { primaryNav, site } from '../../utils/site';
+
+interface Props {
+  currentPath: string;
+}
+
+const { currentPath } = Astro.props;
+
+function isCurrent(href: string): boolean {
+  if (href === '/') return currentPath === '/';
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+---
+
+<header class="hdr">
+  <div class="hdr__inner container">
+    <a class="hdr__brand" href="/" aria-label={`${site.name}, home`}>
+      <span class="hdr__brand-text">{site.handle}</span>
+    </a>
+
+    <button
+      class="hdr__toggle btn btn--sm"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-nav"
+      data-nav-toggle
+    >
+      <span data-nav-toggle-label>Menu</span>
+    </button>
+
+    <nav class="hdr__nav" id="site-nav" aria-label="Primary" data-nav>
+      <ul class="hdr__list" role="list">
+        {
+          primaryNav.map((item) => (
+            <li>
+              {item.external ? (
+                <a class="hdr__link" href={item.href} target="_blank" rel="noopener noreferrer">
+                  {item.label}
+                  <span class="hdr__ext" aria-hidden="true">↗</span>
+                  <span class="visually-hidden">(opens in a new tab)</span>
+                </a>
+              ) : (
+                <a
+                  class="hdr__link"
+                  href={item.href}
+                  aria-current={isCurrent(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Mobile navigation toggle. On wide screens the nav is always visible and
+  // the button is hidden with CSS, so this only matters below the breakpoint.
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const label = document.querySelector<HTMLElement>('[data-nav-toggle-label]');
+
+  if (toggle && nav && label) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      nav.toggleAttribute('data-open', open);
+      label.textContent = open ? 'Close' : 'Menu';
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg);
+    border-bottom: var(--line) solid var(--border);
+  }
+
+  .hdr__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    min-height: 3rem;
+  }
+
+  .hdr__brand {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding-block: var(--s-3);
+  }
+
+  .hdr__brand::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--text);
+    flex: none;
+  }
+
+  .hdr__list {
+    display: flex;
+    gap: var(--s-1);
+  }
+
+  .hdr__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: var(--s-2) var(--s-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--text-2);
+    border-radius: var(--radius);
+    transition:
+      color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+
+  .hdr__link:hover {
+    color: var(--text);
+  }
+
+  .hdr__link[aria-current='page'] {
+    color: var(--bg);
+    background: var(--text);
+  }
+
+  .hdr__ext {
+    color: var(--text-3);
+    font-size: 0.9em;
+  }
+
+  .hdr__link:hover .hdr__ext {
+    color: inherit;
+  }
+
+  .hdr__toggle {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .hdr__toggle {
+      display: inline-flex;
+    }
+
+    .hdr__nav {
+      display: none;
+      position: absolute;
+      inset: 100% 0 auto 0;
+      background: var(--bg);
+      border-bottom: var(--line) solid var(--border);
+    }
+
+    .hdr__nav[data-open] {
+      display: block;
+    }
+
+    .hdr__list {
+      flex-direction: column;
+      gap: 0;
+      padding: var(--s-2) var(--gutter) var(--s-4);
+    }
+
+    .hdr__link {
+      width: 100%;
+      justify-content: space-between;
+      padding-block: var(--s-3);
+      border-bottom: var(--line) solid var(--border-2);
+      border-radius: 0;
+    }
+
+    .hdr__link[aria-current='page'] {
+      color: var(--text);
+      background: none;
+    }
+
+    .hdr__link[aria-current='page']::after {
+      content: '■';
+      font-size: 0.6em;
+    }
+  }
+</style>

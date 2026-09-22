@@ -1,0 +1,120 @@
+---
+import { getCollection } from 'astro:content';
+import ExternalLink from '../ui/ExternalLink.astro';
+import { pad2 } from '../../utils/format';
+
+/**
+ * Bottom of a case study: source link plus previous / next project.
+ */
+interface Props {
+  currentId: string;
+  sourceUrl: string;
+}
+
+const { currentId, sourceUrl } = Astro.props;
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const index = projects.findIndex((p) => p.id === currentId);
+const prev = index > 0 ? projects[index - 1] : undefined;
+const next = index < projects.length - 1 ? projects[index + 1] : undefined;
+---
+
+<nav class="pnav container" aria-label="Project navigation">
+  <div class="pnav__source">
+    <span class="label">Source</span>
+    <ExternalLink href={sourceUrl} class="btn">View repository</ExternalLink>
+  </div>
+
+  <div class="pnav__links">
+    {
+      prev ? (
+        <a class="pnav__link" href={`/projects/${prev.id}`} rel="prev">
+          <span class="label">← Previous</span>
+          <span class="pnav__name">
+            <span class="dim">{pad2(prev.data.order)}</span> {prev.data.title}
+          </span>
+        </a>
+      ) : (
+        <a class="pnav__link" href="/projects">
+          <span class="label">← Index</span>
+          <span class="pnav__name">All projects</span>
+        </a>
+      )
+    }
+    {
+      next ? (
+        <a class="pnav__link pnav__link--next" href={`/projects/${next.id}`} rel="next">
+          <span class="label">Next →</span>
+          <span class="pnav__name">
+            <span class="dim">{pad2(next.data.order)}</span> {next.data.title}
+          </span>
+        </a>
+      ) : (
+        <a class="pnav__link pnav__link--next" href="/projects">
+          <span class="label">Index →</span>
+          <span class="pnav__name">All projects</span>
+        </a>
+      )
+    }
+  </div>
+</nav>
+
+<style>
+  .pnav {
+    border-top: var(--line) solid var(--border);
+    padding-block: var(--s-6);
+    display: grid;
+    gap: var(--s-6);
+  }
+
+  .pnav__source {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+  }
+
+  .pnav__links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .pnav__link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    padding: var(--s-4);
+    text-decoration: none;
+    color: var(--text);
+    transition: background-color var(--dur-fast) var(--ease);
+  }
+
+  .pnav__link:hover {
+    background: var(--panel);
+  }
+
+  .pnav__link--next {
+    text-align: right;
+    border-left: var(--line) solid var(--border);
+  }
+
+  .pnav__name {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 480px) {
+    .pnav__links {
+      grid-template-columns: 1fr;
+    }
+
+    .pnav__link--next {
+      text-align: left;
+      border-left: 0;
+      border-top: var(--line) solid var(--border);
+    }
+  }
+</style>

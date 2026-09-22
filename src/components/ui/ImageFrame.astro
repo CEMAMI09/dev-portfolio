@@ -1,0 +1,258 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import type { FrameImage } from '../../utils/types';
+
+/**
+ * Framed project image with a caption bar.
+ *
+ * `image.src` is a path like "/assets/struct/dashboard.png" that maps to
+ * src/assets/struct/dashboard.png. If the file exists it is rendered through
+ * Astro's image pipeline (responsive, compressed). If it does not exist yet,
+ * a designed placeholder is rendered instead, so pages can be built before
+ * every screenshot is ready and light up when files are added.
+ *
+ * Treatments (gray / dither / halftone) are CSS-only and can be switched off
+ * with the "View original" button; hover and focus also reveal the original.
+ */
+interface Props {
+  image: FrameImage;
+  loading?: 'lazy' | 'eager';
+  sizes?: string;
+  /** Show the treatment toggle in the caption bar. */
+  toggle?: boolean;
+  placeholderLabel?: string;
+  class?: string;
+  /**
+   * How the image fills a reserved frame. Still images size the box to the
+   * file instead, so nothing is cropped or letterboxed.
+   */
+  fit?: 'cover' | 'contain';
+}
+
+const {
+  image,
+  loading = 'lazy',
+  sizes = '(max-width: 720px) 100vw, (max-width: 1240px) 66vw, 800px',
+  toggle = true,
+  placeholderLabel = 'Project image pending',
+  class: className,
+  fit = 'contain',
+} = Astro.props;
+
+const treatment = image.treatment ?? 'dither';
+const assets = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/**/*.{png,jpg,jpeg,webp,avif,gif,svg}',
+  { eager: true },
+);
+
+const key = `/src${image.src}`;
+const resolved = assets[key]?.default;
+
+function parseAspect(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  const [a, b] = value.split('/').map((part) => Number(part.trim()));
+  if (!a || !b) return undefined;
+  return a / b;
+}
+
+/** Animated WebP is often reported as a vertical strip of frames. */
+function displaySize(meta: ImageMetadata, preferredAspect?: string) {
+  const preferred = parseAspect(preferredAspect);
+  if (meta.height > meta.width * 2.5) {
+    const ratio = preferred ?? 16 / 10;
+    return { width: meta.width, height: Math.round(meta.width / ratio) };
+  }
+  if (preferred) {
+    return { width: meta.width, height: Math.round(meta.width / preferred) };
+  }
+  return { width: meta.width, height: meta.height };
+}
+
+const passthrough = Boolean(resolved);
+const size = resolved ? displaySize(resolved, image.aspect) : undefined;
+const isAnim = Boolean(resolved && /\.(gif|webp)$/i.test(image.src));
+const naturalBox = Boolean(resolved) && !isAnim;
+const useContain = !naturalBox && (fit === 'contain' || isAnim);
+const appliedTreatment = !resolved || isAnim || treatment === 'none' ? undefined : treatment;
+const aspect =
+  image.aspect ??
+  (size ? `${size.width} / ${size.height}` : '16 / 10');
+const showToggle = Boolean(resolved) && toggle && appliedTreatment && appliedTreatment !== 'none';
+---
+
+<figure
+  class:list={[
+    'img-frame',
+    {
+      'img-frame--pending': !resolved,
+      'img-frame--contain': useContain,
+      'img-frame--natural': naturalBox,
+    },
+    className,
+  ]}
+  data-treatment={appliedTreatment && appliedTreatment !== 'none' ? appliedTreatment : undefined}
+  style={`--aspect: ${aspect}`}
+>
+  <div class:list={['img-frame__media', { 'grid-bg': !resolved }]}>
+    {
+      resolved && size ? (
+        passthrough ? (
+          <img
+            src={resolved.src}
+            width={size.width}
+            height={size.height}
+            alt={image.alt}
+            loading={loading}
+            decoding="async"
+          />
+        ) : (
+          <Image
+            src={resolved}
+            alt={image.alt}
+            widths={[960, 1440, 1920, 2560, 3420]}
+            sizes={sizes}
+            quality={100}
+            loading={loading}
+            decoding="async"
+          />
+        )
+      ) : (
+        <div class="img-frame__pending">
+          <span class="img-frame__pending-label">[ {placeholderLabel} ]</span>
+          {import.meta.env.DEV && <span class="img-frame__hint">expects src{image.src}</span>}
+        </div>
+      )
+    }
+  </div>
+  <figcaption class="img-frame__bar">
+    <span class="img-frame__caption">{image.caption ?? image.alt}</span>
+    {
+      showToggle && (
+        <button class="img-frame__toggle" type="button" aria-pressed="false" data-img-toggle>
+          View original
+        </button>
+      )
+    }
+  </figcaption>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-img-toggle]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const frame = button.closest<HTMLElement>('.img-frame');
+      if (!frame) return;
+      const revealed = frame.dataset.revealed === 'true';
+      frame.dataset.revealed = String(!revealed);
+      button.setAttribute('aria-pressed', String(!revealed));
+      button.textContent = revealed ? 'View original' : 'View treated';
+    });
+  });
+</script>
+
+<style>
+  .img-frame {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .img-frame__media {
+    position: relative;
+    aspect-ratio: var(--aspect);
+    background: var(--bg-raised);
+    overflow: hidden;
+  }
+
+  .img-frame__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .img-frame--contain .img-frame__media img {
+    object-fit: contain;
+    object-position: center;
+    background: transparent;
+  }
+
+  .img-frame--natural .img-frame__media {
+    aspect-ratio: auto;
+  }
+
+  .img-frame--natural .img-frame__media img {
+    height: auto;
+    object-fit: unset;
+  }
+
+  .img-frame__pending {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    text-align: center;
+    padding: var(--s-4);
+  }
+
+  .img-frame__pending-label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono-wide);
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  .img-frame__hint {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--text-3);
+    opacity: 0.7;
+  }
+
+  .img-frame__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    min-height: 2rem;
+    padding: var(--s-2) var(--s-3);
+    border-top: var(--line) solid var(--border);
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: 0.02em;
+    color: var(--text-2);
+  }
+
+  .img-frame__caption {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .img-frame__toggle {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text-2);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 0.25em;
+    padding: var(--s-1) 0;
+    transition: color var(--dur-fast) var(--ease);
+  }
+
+  .img-frame__toggle:hover,
+  .img-frame__toggle[aria-pressed='true'] {
+    color: var(--text);
+    text-decoration-color: var(--text);
+  }
+</style>

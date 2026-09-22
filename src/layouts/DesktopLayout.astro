@@ -1,0 +1,57 @@
+---
+import Head from '../components/layout/Head.astro';
+import CircuitBackground from '../components/layout/CircuitBackground.astro';
+import DesktopBar from '../components/desktop/DesktopBar.astro';
+import WindowOverlay from '../components/desktop/WindowOverlay.astro';
+
+/**
+ * Desktop layout for the homepage: a thin system clock, the circuit backdrop,
+ * and a full-viewport main area for the identity block and app icons.
+ */
+interface Props {
+  title?: string;
+  bareTitle?: boolean;
+  description?: string;
+}
+
+const { title, bareTitle, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Head title={title} bareTitle={bareTitle} description={description} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <CircuitBackground />
+    <div class="desk">
+      <DesktopBar />
+      <main id="main" class="desk__main" tabindex="-1">
+        <slot />
+      </main>
+    </div>
+    <WindowOverlay />
+  </body>
+</html>
+
+<style>
+  .desk {
+    position: relative;
+    z-index: 1;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .desk__main {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-height: 100dvh;
+  }
+
+  .desk__main:focus {
+    outline: none;
+  }
+</style>

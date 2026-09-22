@@ -1,0 +1,136 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import StatusLabel from '../ui/StatusLabel.astro';
+import ExternalLink from '../ui/ExternalLink.astro';
+import { formatRange, pad2 } from '../../utils/format';
+
+/**
+ * Top of every case study: number, title, one-paragraph summary, and the
+ * metadata record (dates, status, category, links). Each page composes the
+ * rest of its layout below this.
+ */
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { data } = project;
+const number = pad2(data.order);
+---
+
+<header class="ph container">
+  <p class="ph__kicker mono">
+    <span class="ph__num">{number}</span>
+    <span>{data.kicker}</span>
+  </p>
+  <h1 class="ph__title title">{data.title}</h1>
+
+  <div class="ph__grid">
+    <p class="ph__summary">{data.summary}</p>
+
+    <dl class="kv ph__meta">
+      <dt>Dates</dt>
+      <dd>{formatRange(data.start, data.end)}</dd>
+
+      <dt>Status</dt>
+      <dd>
+        <StatusLabel kind={data.status.kind} label={data.status.label} />
+        {data.status.detail && <span class="ph__detail">{data.status.detail}</span>}
+      </dd>
+
+      <dt>Category</dt>
+      <dd>{data.category}</dd>
+
+      <dt>Source</dt>
+      <dd>
+        <ExternalLink href={data.links.source.url}>{data.links.source.label}</ExternalLink>
+      </dd>
+
+      {
+        data.links.live && (
+          <>
+            <dt>Site</dt>
+            <dd>
+              <ExternalLink href={data.links.live.url}>{data.links.live.label}</ExternalLink>
+              {!data.links.live.verified && (
+                <span class="ph__detail">
+                  {data.links.live.note ?? 'Deployment not verified'}
+                </span>
+              )}
+            </dd>
+          </>
+        )
+      }
+    </dl>
+  </div>
+
+  <div class="ph__actions">
+    <ExternalLink href={data.links.source.url} class="btn btn--primary">Source</ExternalLink>
+    {
+      data.links.live && data.links.live.verified && (
+        <ExternalLink href={data.links.live.url} class="btn">Open site</ExternalLink>
+      )
+    }
+  </div>
+</header>
+
+<style>
+  .ph {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  .ph__kicker {
+    display: flex;
+    gap: var(--s-4);
+    color: var(--text-2);
+    margin-bottom: var(--s-4);
+  }
+
+  .ph__num {
+    color: var(--text-3);
+  }
+
+  .ph__title {
+    margin-bottom: var(--s-6);
+  }
+
+  .ph__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--s-6) var(--s-8);
+    align-items: start;
+  }
+
+  .ph__summary {
+    font-size: var(--fs-lg);
+    line-height: 1.5;
+    color: var(--text);
+    max-width: 34em;
+  }
+
+  .ph__meta {
+    padding: var(--s-4);
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+  }
+
+  .ph__detail {
+    display: block;
+    color: var(--text-3);
+    margin-top: var(--s-1);
+  }
+
+  .ph__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+  }
+
+  @media (max-width: 900px) {
+    .ph__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

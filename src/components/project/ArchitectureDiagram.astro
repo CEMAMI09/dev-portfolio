@@ -1,0 +1,194 @@
+---
+/**
+ * Data-flow / architecture diagram rendered as an ordered list of boxes with
+ * arrows between them. Row layouts collapse to a column on narrow screens.
+ */
+interface Step {
+  label: string;
+  sub?: string;
+}
+
+interface Props {
+  title: string;
+  steps: Step[];
+  direction?: 'row' | 'column';
+  caption?: string;
+  /** Show step numbers inside each box. */
+  numbered?: boolean;
+  class?: string;
+}
+
+const { title, steps, direction = 'column', caption, numbered = false, class: className } = Astro.props;
+---
+
+<figure class:list={['diag', `diag--${direction}`, className]}>
+  <figcaption class="diag__title">{title}</figcaption>
+  <ol class="diag__list" role="list">
+    {
+      steps.map((step, i) => (
+        <li class="diag__step">
+          <div class="diag__box">
+            {numbered && <span class="diag__num">{String(i + 1).padStart(2, '0')}</span>}
+            <span class="diag__label">{step.label}</span>
+            {step.sub && <span class="diag__sub">{step.sub}</span>}
+          </div>
+          {i < steps.length - 1 && (
+            <span class="diag__arrow" aria-hidden="true">
+              <span class="diag__arrow-line"></span>
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+  {caption && <p class="diag__caption">{caption}</p>}
+</figure>
+
+<style>
+  .diag {
+    margin: 0;
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--panel);
+    min-width: 0;
+  }
+
+  .diag__title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono-wide);
+    text-transform: uppercase;
+    color: var(--text);
+    padding: var(--s-2) var(--s-3);
+    border-bottom: var(--line) solid var(--border);
+    background: var(--bg-raised);
+  }
+
+  .diag__list {
+    display: flex;
+    flex-direction: column;
+    padding: var(--s-4);
+    gap: 0;
+  }
+
+  .diag__step {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .diag__box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: var(--s-3) var(--s-4);
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    min-width: 0;
+  }
+
+  .diag__num {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--text-3);
+    letter-spacing: var(--track-mono);
+  }
+
+  .diag__label {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .diag__sub {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--text-2);
+    line-height: 1.4;
+  }
+
+  /* Column arrows: a short vertical line with a chevron. */
+  .diag__arrow {
+    display: flex;
+    justify-content: center;
+    height: 1.5rem;
+    position: relative;
+  }
+
+  .diag__arrow-line {
+    width: var(--line);
+    height: 100%;
+    background: var(--border);
+    position: relative;
+  }
+
+  .diag__arrow-line::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border-right: var(--line) solid var(--text-2);
+    border-bottom: var(--line) solid var(--text-2);
+    transform: translate(-50%, -1px) rotate(45deg);
+  }
+
+  .diag__caption {
+    font-family: var(--font-mono);
+    font-size: var(--fs-2xs);
+    color: var(--text-3);
+    padding: var(--s-2) var(--s-3);
+    border-top: var(--line) solid var(--border-2);
+    max-width: none;
+    line-height: 1.5;
+  }
+
+  /* Row layout on wide screens. */
+  @media (min-width: 900px) {
+    .diag--row .diag__list {
+      flex-direction: row;
+      align-items: stretch;
+    }
+
+    .diag--row .diag__step {
+      flex-direction: row;
+      flex: 1 1 0;
+      align-items: stretch;
+    }
+
+    .diag--row .diag__step:last-child {
+      flex-grow: 1;
+    }
+
+    .diag--row .diag__box {
+      flex: 1 1 auto;
+    }
+
+    .diag--row .diag__arrow {
+      flex-direction: row;
+      align-items: center;
+      height: auto;
+      width: 1.25rem;
+      flex: none;
+    }
+
+    .diag--row .diag__arrow-line {
+      width: 100%;
+      height: var(--line);
+    }
+
+    .diag--row .diag__arrow-line::after {
+      bottom: auto;
+      top: 50%;
+      left: auto;
+      right: 0;
+      transform: translate(-1px, -50%) rotate(-45deg);
+    }
+  }
+</style>

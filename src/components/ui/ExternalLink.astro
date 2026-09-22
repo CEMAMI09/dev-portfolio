@@ -1,0 +1,28 @@
+---
+/**
+ * Link that opens in a new tab, with a visible ↗ and a screen-reader note.
+ * Pass any class through (e.g. "btn" or "link").
+ */
+interface Props {
+  href: string;
+  class?: string;
+  /** Hide the arrow glyph when the surrounding design already implies it. */
+  arrow?: boolean;
+  title?: string;
+}
+
+const { href, class: className, arrow = true, title } = Astro.props;
+---
+
+<a href={href} class={className} target="_blank" rel="noopener noreferrer" title={title}>
+  <slot />
+  {arrow && <span class="ext-arrow" aria-hidden="true">↗</span>}
+  <span class="visually-hidden">(opens in a new tab)</span>
+</a>
+
+<style>
+  .ext-arrow {
+    display: inline-block;
+    margin-left: 0.1em;
+  }
+</style>

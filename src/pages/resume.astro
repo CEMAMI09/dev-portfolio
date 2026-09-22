@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import WindowFrame from '../components/ui/WindowFrame.astro';
+import ExternalLink from '../components/ui/ExternalLink.astro';
+import CopyEmail from '../components/ui/CopyEmail.astro';
+import { site } from '../utils/site';
+import { publicFileInfo, formatBytes } from '../utils/assets';
+import { isoDate } from '../utils/format';
+
+/**
+ * Placeholder until the resume exists. Drop the file at
+ * public/cody-emami-resume.pdf and rebuild; the page then exposes open and
+ * download links with the real file size and date.
+ */
+const resume = publicFileInfo(site.resumePath);
+const meta =
+  resume.exists && resume.size && resume.modified
+    ? `${formatBytes(resume.size)} · ${isoDate(resume.modified)}`
+    : 'Pending';
+---
+
+<BaseLayout
+  title="Resume"
+  description="Resume of Cody Emami, software developer and electrical engineering student in Las Vegas."
+  crumbs={[{ label: 'resume.pdf' }]}
+  pathMeta={resume.exists ? 'PDF' : 'Pending'}
+>
+  <header class="rh container">
+    <p class="mono rh__kicker">resume.pdf</p>
+    <h1 class="title">Resume</h1>
+  </header>
+
+  <div class="container resume-wrap">
+    <WindowFrame title="RESUME.PDF" meta={meta} as="section">
+      {
+        resume.exists ? (
+          <div class="resume">
+            <p class="prose">
+              Current resume as a PDF. Contact details and links are also listed below.
+            </p>
+            <div class="resume__actions">
+              <ExternalLink href={site.resumePath} class="btn btn--primary">Open PDF</ExternalLink>
+              <a class="btn" href={site.resumePath} download="cody-emami-resume.pdf">Download PDF</a>
+            </div>
+          </div>
+        ) : (
+          <div class="resume">
+            <p class="prose">Resume will be added here.</p>
+            <p class="prose resume__hint">
+              Until then, the projects and work pages cover the same ground in more detail.
+            </p>
+          </div>
+        )
+      }
+    </WindowFrame>
+
+    <WindowFrame title="CONTACT" as="section" class="resume-links">
+      <dl class="kv">
+        <dt>Email</dt>
+        <dd><CopyEmail /></dd>
+        <dt>GitHub</dt>
+        <dd><ExternalLink href={site.github}>github.com/{site.githubHandle}</ExternalLink></dd>
+        <dt>LinkedIn</dt>
+        <dd><ExternalLink href={site.linkedin}>linkedin.com/in/cody-emami</ExternalLink></dd>
+        <dt>Location</dt>
+        <dd>{site.location}</dd>
+      </dl>
+    </WindowFrame>
+  </div>
+</BaseLayout>
+
+<style>
+  .rh {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  .rh__kicker {
+    color: var(--text-3);
+    margin-bottom: var(--s-3);
+  }
+
+  .resume-wrap {
+    padding-bottom: var(--s-8);
+    max-width: calc(44rem + 2 * var(--gutter));
+    display: grid;
+    gap: var(--s-4);
+  }
+
+  .resume {
+    display: grid;
+    gap: var(--s-4);
+    padding: var(--s-2);
+  }
+
+  .resume__hint {
+    color: var(--text-2);
+    font-size: var(--fs-base);
+  }
+
+  .resume__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+  }
+</style>

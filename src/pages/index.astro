@@ -1,0 +1,162 @@
+---
+import DesktopLayout from '../layouts/DesktopLayout.astro';
+import AppIcon from '../components/desktop/AppIcon.astro';
+import Icon from '../components/ui/Icon.astro';
+import { site } from '../utils/site';
+---
+
+<DesktopLayout>
+  <section class="id" aria-labelledby="name">
+    <p class="id__role">Software Developer | Electrical Engineering Student</p>
+    <h1 class="id__name" id="name">Cody Emami</h1>
+    <p class="id__intro">
+      I'm a software developer in Las Vegas and an electrical engineering student. I work on
+      production web systems at Evoq Technologies and spend my own time building IoT
+      infrastructure, CAD tools, robotics, and other engineering projects.
+    </p>
+    <ul class="id__links" role="list">
+      <li>
+        <a class="id__link" href={`mailto:${site.email}`}>
+          <Icon name="mail" size={16} />
+          {site.email}
+        </a>
+      </li>
+      <li>
+        <a class="id__link" href={site.github} target="_blank" rel="noopener noreferrer">
+          <Icon name="github" size={16} />
+          GitHub
+          <span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <nav class="apps" aria-label="Pages">
+    <ul class="apps__list" role="list">
+      <li>
+        <AppIcon
+          href="/resume"
+          appId="resume"
+          label="resume"
+          icon="document-prompt"
+          description="resume PDF"
+        />
+      </li>
+      <li>
+        <AppIcon
+          href="/projects"
+          appId="projects"
+          label="projects"
+          icon="folder-search"
+          description="three engineering projects"
+        />
+      </li>
+      <li>
+        <AppIcon
+          href="/work"
+          appId="work"
+          label="work"
+          icon="briefcase"
+          description="professional experience"
+        />
+      </li>
+      <li>
+        <AppIcon
+          href="/about"
+          appId="about"
+          label="about"
+          icon="person"
+          description="about Cody"
+        />
+      </li>
+    </ul>
+  </nav>
+</DesktopLayout>
+
+<style>
+  .id {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4.5rem var(--gutter) 1.5rem;
+    font-family: var(--font-mono);
+  }
+
+  .id__role {
+    font-weight: 600;
+    font-size: min(2.2rem, calc((100vw - 3rem) / 31));
+    line-height: 1.2;
+    color: var(--white);
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  .id__name {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: min(2rem, calc((100vw - 3rem) / 34));
+    line-height: 1.2;
+    letter-spacing: 0;
+    color: var(--white);
+    margin-top: 0.85rem;
+    text-transform: none;
+  }
+
+  .id__intro {
+    margin-top: 1.6rem;
+    font-size: var(--fs-sm);
+    line-height: 1.7;
+    color: var(--text-2);
+    max-width: 36rem;
+  }
+
+  .id__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem 2rem;
+    margin-top: 1.5rem;
+  }
+
+  .id__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-xs);
+    color: var(--text);
+    text-decoration: none;
+    padding: 0.35rem 0;
+  }
+
+  .id__link:hover {
+    color: var(--white);
+    text-decoration: underline;
+    text-underline-offset: 0.28em;
+    text-decoration-color: var(--text-3);
+  }
+
+  .apps {
+    padding: 0 var(--gutter) clamp(2.25rem, 7vh, 4.5rem);
+  }
+
+  .apps__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem clamp(1.25rem, 4vw, 3.75rem);
+  }
+
+  @media (max-width: 480px) {
+    .id {
+      padding-top: 5rem;
+    }
+
+    .apps__list {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 1rem 1.5rem;
+    }
+  }
+</style>

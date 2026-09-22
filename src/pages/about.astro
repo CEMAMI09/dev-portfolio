@@ -1,0 +1,199 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import WindowFrame from '../components/ui/WindowFrame.astro';
+import ExternalLink from '../components/ui/ExternalLink.astro';
+import CopyEmail from '../components/ui/CopyEmail.astro';
+import SectionHeader from '../components/ui/SectionHeader.astro';
+import { site } from '../utils/site';
+import { formatMonth } from '../utils/format';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+
+interface LogEntry {
+  date: string;
+  text: string;
+  href?: string;
+  planned?: boolean;
+}
+
+const log: LogEntry[] = [
+  ...projects.map((p) => ({
+    date: p.data.start,
+    text: `${p.data.title} started`,
+    href: `/projects/${p.id}`,
+  })),
+  { date: '2025-11', text: 'Joined Evoq Technologies as Software Developer' },
+  { date: '2027-05', text: 'Graduate high school; begin a four-year EE / CS program', planned: true },
+].sort((a, b) => a.date.localeCompare(b.date));
+---
+
+<BaseLayout
+  title="About"
+  description="About Cody Emami: software developer at Evoq Technologies and electrical engineering student in Las Vegas."
+  crumbs={[{ label: 'about.txt' }]}
+  pathMeta="Plain text"
+>
+  <header class="ah container">
+    <h1 class="title">About</h1>
+  </header>
+
+  <div class="container about-wrap">
+    <WindowFrame title="ABOUT.TXT" meta="UTF-8" as="article">
+      <div class="about">
+        <section class="about__block">
+          <p class="prose">
+            I'm Cody. I currently attend Nevada State High School while taking college classes
+            through the College of Southern Nevada. I graduate in May 2027 and plan to study
+            electrical engineering and computer science at a four-year university.
+          </p>
+          <p class="prose">
+            I work as a software developer at Evoq Technologies in Henderson, where I build and
+            maintain web applications and internal tools. The rest of my time goes into the
+            projects on this site.
+          </p>
+        </section>
+
+        <section class="about__block" aria-labelledby="interests">
+          <h2 class="label about__heading" id="interests">Technical interests</h2>
+          <p class="prose">
+            I'm especially interested in systems where software has to interact with something
+            physical: embedded devices, robots, control systems, networking, electronics, and
+            hardware/software co-design. I also like backend and infrastructure problems where
+            understanding what is happening below the UI actually matters, and I spend a fair
+            amount of time in CAD and around digital fabrication.
+          </p>
+        </section>
+
+        <section class="about__block" aria-labelledby="outside">
+          <h2 class="label about__heading" id="outside">Outside of work</h2>
+          <p class="prose">
+            Outside of school and work, I'm usually lifting, playing chess, messing with
+            computers, reading about philosophy or kinesiology, reading comics, or working on
+            another project.
+          </p>
+        </section>
+
+        <section class="about__block" aria-labelledby="links">
+          <h2 class="label about__heading" id="links">Links</h2>
+          <dl class="kv">
+            <dt>Email</dt>
+            <dd><CopyEmail /></dd>
+            <dt>GitHub</dt>
+            <dd><ExternalLink href={site.github}>github.com/{site.githubHandle}</ExternalLink></dd>
+            <dt>LinkedIn</dt>
+            <dd><ExternalLink href={site.linkedin}>linkedin.com/in/cody-emami</ExternalLink></dd>
+            <dt>Location</dt>
+            <dd>{site.location}</dd>
+          </dl>
+        </section>
+      </div>
+    </WindowFrame>
+  </div>
+
+  <section class="section container log-wrap" aria-labelledby="log-title">
+    <SectionHeader id="log-title" title="Log" meta={`${log.length} entries`} />
+    <ol class="log" role="list">
+      {
+        log.map((entry) => (
+          <li class:list={['log__row', { 'log__row--planned': entry.planned }]}>
+            <time class="log__date" datetime={entry.date}>{formatMonth(entry.date)}</time>
+            <span class="log__text">
+              {entry.href ? <a href={entry.href}>{entry.text}</a> : entry.text}
+              {entry.planned && <span class="log__flag">planned</span>}
+            </span>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+</BaseLayout>
+
+<style>
+  .ah {
+    padding-block: var(--s-7) var(--s-6);
+  }
+
+  .about-wrap {
+    padding-bottom: var(--s-6);
+    max-width: calc(52rem + 2 * var(--gutter));
+  }
+
+  .log-wrap {
+    max-width: calc(52rem + 2 * var(--gutter));
+    padding-bottom: var(--s-8);
+  }
+
+  .about {
+    display: grid;
+    gap: var(--s-6);
+    padding: var(--s-2);
+  }
+
+  .about__block + .about__block {
+    padding-top: var(--s-6);
+    border-top: var(--line) solid var(--border-2);
+  }
+
+  .about__heading {
+    margin-bottom: var(--s-3);
+  }
+
+  .about .prose + .prose {
+    margin-top: 1em;
+  }
+
+  .log {
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .log__row {
+    display: grid;
+    grid-template-columns: 7rem 1fr;
+    gap: var(--s-4);
+    padding: var(--s-3) var(--s-4);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text);
+  }
+
+  .log__row + .log__row {
+    border-top: var(--line) solid var(--border-2);
+  }
+
+  .log__row--planned {
+    color: var(--text-2);
+  }
+
+  .log__date {
+    color: var(--text-3);
+    font-feature-settings: 'tnum' 1;
+  }
+
+  .log__text a {
+    text-decoration-color: var(--border);
+  }
+
+  .log__text a:hover {
+    text-decoration-color: var(--text);
+  }
+
+  .log__flag {
+    margin-left: var(--s-3);
+    font-size: var(--fs-2xs);
+    letter-spacing: var(--track-mono);
+    text-transform: uppercase;
+    color: var(--text-3);
+    border: var(--line) solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.1rem 0.4rem;
+  }
+
+  @media (max-width: 720px) {
+    .log__row {
+      grid-template-columns: 1fr;
+      gap: var(--s-1);
+    }
+  }
+</style>
