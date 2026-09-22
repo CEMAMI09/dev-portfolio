@@ -1,6 +1,5 @@
 import { existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 /**
  * Build-time helpers for files under /public.
@@ -9,9 +8,16 @@ import { fileURLToPath } from 'node:url';
  * CAD animations, the resume PDF). These helpers let a component decide at
  * build time whether to render the real file or a designed placeholder, so
  * dropping a file into /public is enough to light it up.
+ *
+ * Resolve public/ from the project root. `astro dev` and `astro build`
+ * (including Vercel) both run with that directory as the cwd. A path
+ * relative to import.meta.url works in dev, where the URL is this source
+ * file, and fails in production: Vite bundles the module and the URL then
+ * points at the build chunk, so the PDF looks missing and the page renders
+ * the placeholder.
  */
 
-const publicDir = fileURLToPath(new URL('../../public/', import.meta.url));
+const publicDir = join(process.cwd(), 'public');
 
 /** Convert a public URL path like "/assets/struct/x.png" to an absolute file path. */
 function toFilePath(publicPath: string): string {
